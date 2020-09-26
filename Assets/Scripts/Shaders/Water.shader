@@ -1,4 +1,6 @@
-﻿Shader "Custom/Watere"
+﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
+
+Shader "Custom/Watere"
 {
     Properties
     {
@@ -44,13 +46,13 @@
 		sampler2D _Normal2;
 		sampler2D _Normal3;
 		
-
 		struct Input
 		{
 			float2 uv_MainTex;
 			float2 uv_Normal1;
 			float2 uv_Normal2;
 			float2 uv_Normal3;
+			float3 worldPos;
 		};
 
 		half _Glossiness;
@@ -75,16 +77,17 @@
 
 		void surf(Input IN, inout SurfaceOutputStandard o)
 		{
-			// Albedo comes from a texture tinted by color
 			fixed4 c = tex2D(_MainTex, IN.uv_MainTex) * _Color;
 			o.Albedo = c.rgb;
-			o.Metallic = _Metallic;
-			o.Smoothness = _Glossiness;
 			o.Alpha = c.a;
 			
-			half3 n1 = HandleNormal(_Normal1, IN.uv_Normal1, _Normal1Scale, _Normal1Speed, _Time);
-			half3 n2 = HandleNormal(_Normal2, IN.uv_Normal2, _Normal2Scale, _Normal2Speed, _Time);
-			half3 n3 = HandleNormal(_Normal3, IN.uv_Normal3, _Normal3Scale, _Normal3Speed, _Time);
+			o.Metallic = _Metallic;
+			o.Smoothness = _Glossiness;
+
+			
+			half3 n1 = HandleNormal(_Normal1, IN.worldPos.xz, _Normal1Scale, _Normal1Speed, _Time);
+			half3 n2 = HandleNormal(_Normal2, IN.worldPos.xz, _Normal2Scale, _Normal2Speed, _Time);
+			half3 n3 = HandleNormal(_Normal3, IN.worldPos.xz, _Normal3Scale, _Normal3Speed, _Time);
 			half3 blendedNormals = MultiBlendNormals(n1, n2, n3);
 			o.Normal = lerp(float3(0.5, 0.5, 0.5), blendedNormals, _NormalStrength);
 		}
