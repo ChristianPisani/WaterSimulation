@@ -6,8 +6,15 @@ Shader "Custom/Watere"
 {
     Properties
     {
-        _Color ("Color", Color) = (1,1,1,1)
-		_MainTex("Albedo (RGB) Alpha (A)", 2D) = "white" {}
+		_Glossiness("Smoothness", Range(0,1)) = 0.5
+		_Metallic("Metallic", Range(0,1)) = 0.0
+
+		_EdgeLength("Edge length", Range(2,50)) = 5
+		_Phong("Phong Strengh", Range(0,1)) = 0.5
+
+		_ColorTop ("Color top", Color) = (1,1,1,1)
+		_ColorBottom("Color bottom", Color) = (1,1,1,1)
+		_ColorLerpStrength("Color lerp strength", Range(-1, 1)) = 0
 		
 		_Normal1 ("Bump", 2D) = "bump" {}
 		_Normal1Speed("Normal 1 Speed", Range(-1, 1)) = 0.5
@@ -19,21 +26,24 @@ Shader "Custom/Watere"
 		
 		_Normal3 ("Bump", 2D) = "bump" {}
 		_Normal3Speed("Normal 3 Speed", Range(-1, 1)) = 1.0
-		_Normal3Scale ("Normal 3 Scale", Range(0, 4)) = 1.0
-		
+		_Normal3Scale("Normal 3 Scale", Range(0, 4)) = 1.0
+
 		_NormalStrength("NormalStrength", Range(-1, 1)) = 0.5
-        
-		_Glossiness ("Smoothness", Range(0,1)) = 0.5
-        _Metallic ("Metallic", Range(0,1)) = 0.0
+		
+		_Depth ("Depth", Range(0, 100)) = 10
+		_Phase ("Phase", Range(0, 360)) = 0
 
-		_EdgeLength("Edge length", Range(2,50)) = 5
-		_Phong("Phong Strengh", Range(0,1)) = 0.5
+		_Direction1 ("Direction 1", Vector) = (1,0,0)
+		_Amplitude1 ("Amplitude 1", Range(0, 5)) = 1
+		_Speed1 ("Speed 2", Range(-5, 5)) = 1
+		
+		_Direction2("Direction 2", Vector) = (1,0,0)
+		_Amplitude2("Amplitude 2", Range(0, 5)) = 1
+		_Speed2("Speed 2", Range(-5, 5)) = 1
 
-		_Direction("Direction", Vector) = (1,0,0)
-		_Amplitude("Amplitude", Range(0, 5)) = 1
-		_Depth("Depth", Range(0, 100)) = 10
-		_Phase("Phase", Range(0, 360)) = 0
+
 		_NeighbourDistance("NeighbourDistance", Range(0.0001,1)) = 0.01
+		_TimeScale("Timescale", Range(0, 20)) = 10
 	}
     SubShader
     {
@@ -45,7 +55,7 @@ Shader "Custom/Watere"
 
 		CGPROGRAM
 		// Physically based Standard lighting model, and enable shadows on all light types
-		#pragma surface surf Standard fullforwardshadows alpha vertex:vert tessellate:tessEdge tessphong:_Phong
+		#pragma surface surf Standard fullforwardshadows alpha vertex:vert fragment:frag tessellate:tessEdge tessphong:_Phong
 		
 		// Use shader model 3.0 target, to get nicer looking lighting
 		#pragma target 3.0
@@ -53,29 +63,39 @@ Shader "Custom/Watere"
 		#include "UnityStandardUtils.cginc"
 		#include "Tessellation.cginc"
 
-		sampler2D _MainTex;
 		sampler2D _Normal1;
 		sampler2D _Normal2;
 		sampler2D _Normal3;
 
-		float3 _Direction;
-		float _Amplitude;
+		float3 _Direction1;
+		float _Amplitude1;
+		float _Speed1;
+		float3 _Direction2;
+		float _Amplitude2;
+		float _Speed2;
+
+		
 		float _Depth;
 		float _Phase;
 		float _NeighbourDistance;
-		
+		float _TimeScale;
+
 		struct Input
 		{
-			float2 uv_MainTex;
-			float2 uv_Normal1;
-			float2 uv_Normal2;
-			float2 uv_Normal3;
 			float3 worldPos;
+			float4 color : COLOR;
+		};
+
+		struct v2f {
+			float4 pos : SV_POSITION;
+			fixed3 color : COLOR0;
 		};
 
 		half _Glossiness;
 		half _Metallic;
-		fixed4 _Color;
+		fixed4 _ColorTop;
+		fixed4 _ColorBottom;
+		float _ColorLerpStrength;
 
 		half _NormalStrength;
 		half _Normal1Speed;
@@ -85,6 +105,8 @@ Shader "Custom/Watere"
 		half _Normal1Scale;
 		half _Normal2Scale;
 		half _Normal3Scale;
+
+		fixed4 color;
 
 		// Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
 		// See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
@@ -101,16 +123,21 @@ Shader "Custom/Watere"
 			return UnityEdgeLengthBasedTess(v0.vertex, v1.vertex, v2.vertex, _EdgeLength);
 		}
 
+		struct GerstnerWaveStruct {
+			float3 position;
+			float3 offsetX;
+			float3 offsetZ;
+		};
+
 		void surf(Input IN, inout SurfaceOutputStandard o)
 		{
-			fixed4 c = tex2D(_MainTex, IN.uv_MainTex) * _Color;
-			o.Albedo = c.rgb;
-			o.Alpha = c.a;
+			o.Albedo = lerp(_ColorBottom, _ColorTop, IN.color);
+			o.Alpha = IN.color.a;
 			
 			o.Metallic = _Metallic;
 			o.Smoothness = _Glossiness;
 
-			float time = _Time * 10;
+			float time = _Time * _TimeScale;
 			
 			half3 n1 = HandleNormal(_Normal1, IN.worldPos.xz, _Normal1Scale, _Normal1Speed, time);
 			half3 n2 = HandleNormal(_Normal2, IN.worldPos.xz, _Normal2Scale, _Normal2Speed, time);
@@ -119,25 +146,43 @@ Shader "Custom/Watere"
 			o.Normal = lerp(float3(0.5, 0.5, 0.5), blendedNormals, _NormalStrength);
 		}
 
-		void vert(inout appdata_full v) {
-			float3 worldPos = mul(unity_ObjectToWorld, v.vertex);
-
-			float a = 0.25;
-			float f = 3;
-			float s = 5;
-
-			float3 wave = GerstnerWave(worldPos, v.vertex.xyz, _Direction, _Amplitude, _Depth, _Phase, _Time);
+		GerstnerWaveStruct GetWave(float3 worldPos, float3 direction, float amplitude, float depth, float phase, float speed, float time) {
+			GerstnerWaveStruct wave;
 			
+			float waveTime = time * speed;
+
+			wave.position = GerstnerWave(worldPos, direction, amplitude, depth, phase, waveTime);
+
 			float3 offsetX = float3(0, 0, _NeighbourDistance);
 			float3 offsetZ = float3(_NeighbourDistance, 0, 0);
 
-			float3 waveOffset1 = GerstnerWave(worldPos + offsetX, v.vertex.xyz + offsetX, _Direction, _Amplitude, _Depth, _Phase, _Time);
-			float3 waveOffset2 = GerstnerWave(worldPos + offsetZ, v.vertex.xyz + offsetZ, _Direction, _Amplitude, _Depth, _Phase, _Time);
-
-			v.vertex.xyz = wave;
+			wave.offsetX = GerstnerWave(worldPos + offsetX, direction, amplitude, depth, phase, waveTime);
+			wave.offsetZ = GerstnerWave(worldPos + offsetZ, direction, amplitude, depth, phase, waveTime);
 			
-			v.normal.xyz = (cross(normalize(waveOffset1 - wave), normalize(waveOffset2 - wave)));
+			return wave;
 		}
+
+		float3 GetNormal(float3 pos, float3 offsetX, float3 offsetZ) {
+			return cross(normalize(offsetX - pos), normalize(offsetZ - pos));
+		}
+
+		void vert(inout appdata_full v) {			
+			float3 worldPos = mul(unity_ObjectToWorld, v.vertex);
+			
+			float time = _Time * _TimeScale;
+			
+			GerstnerWaveStruct wave1 = GetWave(worldPos, _Direction1, _Amplitude1, _Depth, _Phase, _Speed1, time);
+			GerstnerWaveStruct wave2 = GetWave(worldPos, _Direction2, _Amplitude2, _Depth, _Phase, _Speed2, time);
+
+			float3 waveWorldPos = GerstnerWaveToWorld(wave1.position + wave2.position, v.vertex.xyz);
+			float3 offsetX = GerstnerWaveToWorld(wave1.offsetX + wave2.offsetX, v.vertex.xyz + float3(0, 0, _NeighbourDistance));
+			float3 offsetZ = GerstnerWaveToWorld(wave1.offsetZ + wave2.offsetZ, v.vertex.xyz + float3(_NeighbourDistance, 0, 0));
+			
+			v.vertex.xyz = waveWorldPos;
+			v.normal.xyz = GetNormal(waveWorldPos, offsetX, offsetZ);
+
+			v.color = lerp(float4(0,0,0,1), float4(1,1,1,1), saturate(v.vertex.y - _ColorLerpStrength));
+		}		
 		ENDCG
 
 		CGINCLUDE
@@ -172,7 +217,7 @@ Shader "Custom/Watere"
 			return float3(vertexPos.x - wave.x, wave.y, vertexPos.z - wave.z);
 		}
 
-		float3 GerstnerWave(float3 vertexPos, float3 localPos, float3 direction, float amplitude, float depth, float phase, float time) {
+		float3 GerstnerWave(float3 vertexPos, float3 direction, float amplitude, float depth, float phase, float time) {
 			float theta = Theta(direction, vertexPos, depth, phase, time);
 			float wL = length(direction);
 
@@ -180,7 +225,7 @@ Shader "Custom/Watere"
 			float x = (direction.x / wL) * (amplitude / tanh(wL * depth)) * sin(theta);
 			float z = (direction.z / wL) * (amplitude / tanh(wL * depth)) * sin(theta);
 
-			return GerstnerWaveToWorld(float3(x, y, z), localPos);
+			return float3(x, y, z);
 		}
 		ENDCG
     }

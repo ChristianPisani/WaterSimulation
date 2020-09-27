@@ -28,11 +28,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normal1:
-        m_Texture: {fileID: 2800000, guid: 4bb30f731484f334ca909e3987d792d8, type: 3}
+        m_Texture: {fileID: 2800000, guid: aa450ac03bf1df74e8e73a1a49ec6e20, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normal2:
-        m_Texture: {fileID: 2800000, guid: 4bb30f731484f334ca909e3987d792d8, type: 3}
+        m_Texture: {fileID: 2800000, guid: aa450ac03bf1df74e8e73a1a49ec6e20, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normal3:
@@ -40,11 +40,14 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _Amplitude: 0.17
-    - _Depth: 13.7
-    - _EdgeLength: 20.7
-    - _Glossiness: 0.64
-    - _Metallic: 0
+    - _Amplitude: 0.19
+    - _Amplitude1: 0.2
+    - _Amplitude2: 0.5
+    - _ColorLerpStrength: 0.63
+    - _Depth: 16.2
+    - _EdgeLength: 2
+    - _Glossiness: 0.862
+    - _Metallic: 0.228
     - _NeighbourDistance: 0.1
     - _Normal1Scale: 0.5
     - _Normal1Speed: 1
@@ -54,8 +57,16 @@ Material:
     - _Normal3Speed: -0.97
     - _NormalStrength: 1
     - _Phase: 0
-    - _Phong: 0.612
+    - _Phong: 0.359
+    - _Speed: 1
+    - _Speed1: 1
+    - _Speed2: 1
+    - _TimeScale: 7
     m_Colors:
-    - _Color: {r: 0.33891064, g: 0.56617, b: 0.6037736, a: 1}
+    - _Color: {r: 0.18841223, g: 0.43531305, b: 0.5471698, a: 0.64705884}
+    - _ColorBottom: {r: 0.4, g: 0.66368175, b: 0.8117647, a: 0.6509804}
+    - _ColorTop: {r: 0.15726236, g: 0.3627534, b: 0.5849056, a: 1}
     - _Direction: {r: 1.25, g: 0, b: 0.75, a: 1}
+    - _Direction1: {r: 1, g: 0, b: 0, a: 1}
+    - _Direction2: {r: 0.5, g: 0, b: 0.5, a: 1}
   m_BuildTextureStacks: []
