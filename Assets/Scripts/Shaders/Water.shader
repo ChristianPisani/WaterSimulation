@@ -33,14 +33,29 @@ Shader "Custom/Watere"
 		_Depth ("Depth", Range(0, 100)) = 10
 		_Phase ("Phase", Range(0, 360)) = 0
 
+		_Amplitude1 ("Amplitude 1", Range(0, 1)) = 1
+		_Speed1 ("Speed 1", Range(0, 5)) = 1
 		_Direction1 ("Direction 1", Vector) = (1,0,0)
-		_Amplitude1 ("Amplitude 1", Range(0, 5)) = 1
-		_Speed1 ("Speed 2", Range(-5, 5)) = 1
 		
+		_Amplitude2("Amplitude 2", Range(0, 1)) = 1
+		_Speed2("Speed 2", Range(0, 5)) = 1
 		_Direction2("Direction 2", Vector) = (1,0,0)
-		_Amplitude2("Amplitude 2", Range(0, 5)) = 1
-		_Speed2("Speed 2", Range(-5, 5)) = 1
 
+		_Amplitude3("Amplitude 3", Range(0, 1)) = 1
+		_Speed3("Speed 3", Range(0, 5)) = 1
+		_Direction3("Direction 3", Vector) = (1,0,0)
+
+		_Amplitude4("Amplitude 4", Range(0, 1)) = 1
+		_Speed4("Speed 4", Range(0, 5)) = 1
+		_Direction4("Direction 4", Vector) = (1,0,0)
+
+		_Amplitude5("Amplitude 5", Range(0, 1)) = 1
+		_Speed5("Speed 5", Range(0, 5)) = 1
+		_Direction5("Direction 5", Vector) = (1,0,0)
+
+		_Amplitude6("Amplitude 6", Range(0, 1)) = 1
+		_Speed6("Speed 6", Range(0, 5)) = 1
+		_Direction6("Direction 6", Vector) = (1,0,0)
 
 		_NeighbourDistance("NeighbourDistance", Range(0.0001,1)) = 0.01
 		_TimeScale("Timescale", Range(0, 20)) = 10
@@ -73,6 +88,18 @@ Shader "Custom/Watere"
 		float3 _Direction2;
 		float _Amplitude2;
 		float _Speed2;
+		float3 _Direction3;
+		float _Amplitude3;
+		float _Speed3;
+		float3 _Direction4;
+		float _Amplitude4;
+		float _Speed4;
+		float3 _Direction5;
+		float _Amplitude5;
+		float _Speed5;
+		float3 _Direction6;
+		float _Amplitude6;
+		float _Speed6;
 
 		
 		float _Depth;
@@ -173,10 +200,14 @@ Shader "Custom/Watere"
 			
 			GerstnerWaveStruct wave1 = GetWave(worldPos, _Direction1, _Amplitude1, _Depth, _Phase, _Speed1, time);
 			GerstnerWaveStruct wave2 = GetWave(worldPos, _Direction2, _Amplitude2, _Depth, _Phase, _Speed2, time);
+			GerstnerWaveStruct wave3 = GetWave(worldPos, _Direction3, _Amplitude3, _Depth, _Phase, _Speed3, time);
+			GerstnerWaveStruct wave4 = GetWave(worldPos, _Direction4, _Amplitude4, _Depth, _Phase, _Speed4, time);
+			GerstnerWaveStruct wave5 = GetWave(worldPos, _Direction5, _Amplitude5, _Depth, _Phase, _Speed5, time);
+			GerstnerWaveStruct wave6 = GetWave(worldPos, _Direction6, _Amplitude6, _Depth, _Phase, _Speed6, time);
 
-			float3 waveWorldPos = GerstnerWaveToWorld(wave1.position + wave2.position, v.vertex.xyz);
-			float3 offsetX = GerstnerWaveToWorld(wave1.offsetX + wave2.offsetX, v.vertex.xyz + float3(0, 0, _NeighbourDistance));
-			float3 offsetZ = GerstnerWaveToWorld(wave1.offsetZ + wave2.offsetZ, v.vertex.xyz + float3(_NeighbourDistance, 0, 0));
+			float3 waveWorldPos = GerstnerWaveToWorld(wave1.position + wave2.position + wave3.position + wave4.position + wave5.position + wave6.position, v.vertex.xyz);
+			float3 offsetX = GerstnerWaveToWorld(wave1.offsetX + wave2.offsetX + wave3.offsetX + wave4.offsetX + wave5.offsetX + wave6.offsetX, v.vertex.xyz + float3(0, 0, _NeighbourDistance));
+			float3 offsetZ = GerstnerWaveToWorld(wave1.offsetZ + wave2.offsetZ + wave3.offsetZ + wave4.offsetZ + wave5.offsetZ + wave6.offsetZ, v.vertex.xyz + float3(_NeighbourDistance, 0, 0));
 			
 			v.vertex.xyz = waveWorldPos;
 			v.normal.xyz = GetNormal(waveWorldPos, offsetX, offsetZ);
