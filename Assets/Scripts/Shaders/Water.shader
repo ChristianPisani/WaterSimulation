@@ -69,7 +69,7 @@ Shader "Custom/Watere"
 	}
 		SubShader
 		{
-			Tags { "Queue" = "Transparent" "IgnoreProjector" = "True" "ForceNoShadowCasting" = "True"  "RenderType" = "Transparent" }
+			Tags { "Queue" = "Transparent" "IgnoreProjector" = "true" "ForceNoShadowCasting" = "True"  "RenderType" = "Opaque" }
 			ZWrite on
 			Cull off
 			LOD 600
@@ -206,7 +206,7 @@ Shader "Custom/Watere"
 			half3 n2 = HandleNormal(_Normal2, IN.worldPos.xz, _Normal2Scale, _Normal2Speed, time);
 			half3 n3 = HandleNormal(_Normal3, IN.worldPos.xz, _Normal3Scale, _Normal3Speed, time);
 			half3 blendedNormals = MultiBlendNormals(n1, n2, n3);
-			o.Normal = lerp(blendedNormals, fixed3(0.9, 0.9, 2), -_NormalStrength + 1.0);
+			o.Normal = lerp(blendedNormals, fixed3(0.5, 0.5, 1), -_NormalStrength + 1.0);
 		}
 
 		GerstnerWaveStruct GetWave(float3 worldPos, float3 direction, float amplitude, float depth, float phase, float speed, float time) {
@@ -251,7 +251,7 @@ Shader "Custom/Watere"
 			thickness = saturate(v.normal.x + v.normal.y + v.normal.z);
 
 			v.color.r = lerp(0, 1, saturate(v.vertex.y - _ColorLerpStrength));
-			v.color.g = lerp(0, 1, saturate((v.normal.x + v.normal.y + v.normal.z)) - 0.5);
+			v.color.g = lerp(0, 1, saturate((v.normal.x + v.normal.y + v.normal.z) - length(ObjSpaceViewDir(v.vertex)) / 50));
 		}
 		ENDCG
 
