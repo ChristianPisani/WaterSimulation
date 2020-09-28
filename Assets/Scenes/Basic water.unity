@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 3e56423e1fe71f94ea97f5bb2004a7e6, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -19165,7 +19165,7 @@ Light:
   serializedVersion: 10
   m_Type: 1
   m_Shape: 0
-  m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 2
   m_Range: 10
   m_SpotAngle: 30
@@ -19222,7 +19222,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
-  m_LocalRotation: {x: 0.7895987, y: -0.05388344, z: 0.41116318, w: 0.45230013}
+  m_LocalRotation: {x: 0.22621593, y: -0.16346079, z: -0.38633552, w: 0.87911993}
   m_LocalPosition: {x: 8.749504, y: 3, z: 52.37807}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -46409,13 +46409,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1609562875}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: -1.4551917e-11, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 69.69578, y: -0.30679333, z: 51.41071}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 493178862}
   m_RootOrder: 391
-  m_LocalEulerAnglesHint: {x: 0, y: 105.999, z: 0}
+  m_LocalEulerAnglesHint: {x: -5.938, y: -0.716, z: 2.637}
 --- !u!64 &1609562877
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -58874,7 +58874,6 @@ GameObject:
   - component: {fileID: 2015026327}
   - component: {fileID: 2015026330}
   - component: {fileID: 2015026329}
-  - component: {fileID: 2015026328}
   m_Layer: 0
   m_Name: Plane (216)
   m_TagString: Untagged
@@ -58896,20 +58895,6 @@ Transform:
   m_Father: {fileID: 493178862}
   m_RootOrder: 216
   m_LocalEulerAnglesHint: {x: 0, y: 105.999, z: 0}
---- !u!64 &2015026328
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2015026326}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &2015026329
 MeshRenderer:
   m_ObjectHideFlags: 0

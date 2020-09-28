@@ -28,7 +28,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normal1:
-        m_Texture: {fileID: 2800000, guid: aa450ac03bf1df74e8e73a1a49ec6e20, type: 3}
+        m_Texture: {fileID: 2800000, guid: c5c3e64f92f00cc4da3437bfe1bde8e3, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normal2:
@@ -36,49 +36,60 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normal3:
-        m_Texture: {fileID: 2800000, guid: 61fbe211f04efa1418a2926d850b3a15, type: 3}
+        m_Texture: {fileID: 2800000, guid: aa450ac03bf1df74e8e73a1a49ec6e20, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _Amplitude: 0.19
-    - _Amplitude1: 0.116
-    - _Amplitude2: 0.304
-    - _Amplitude3: 0.057
-    - _Amplitude4: 0.228
-    - _Amplitude5: 0.952
-    - _Amplitude6: 0.172
-    - _ColorLerpStrength: 0.837
+    - _Amplitude1: 0.133
+    - _Amplitude2: 0.085
+    - _Amplitude3: 0.054
+    - _Amplitude4: 0.075
+    - _Amplitude5: 0.208
+    - _Amplitude6: 0.11
+    - _Attenuation: 0.1
+    - _ColorLerpStrength: -0.06
     - _Depth: 16.2
-    - _EdgeLength: 5.7
-    - _Glossiness: 0.918
-    - _Metallic: 0.181
+    - _Distortion: 0.5
+    - _EdgeLength: 6.9
+    - _Glossiness: 0.95
+    - _LambertWrapAmount: 0.46
+    - _Metallic: 0.302
     - _NeighbourDistance: 1
-    - _Normal1Scale: 0.35
-    - _Normal1Speed: 1
-    - _Normal2Scale: 0.81
-    - _Normal2Speed: -1
-    - _Normal3Scale: 0.3
-    - _Normal3Speed: -0.97
-    - _NormalStrength: 0.803
+    - _Normal1Scale: 0.84
+    - _Normal1Speed: -0.63
+    - _Normal2Scale: 0.64
+    - _Normal2Speed: -0.9
+    - _Normal3Scale: 0.4
+    - _Normal3Speed: 0.75
+    - _NormalStrength: 0.42
     - _Phase: 0
     - _Phong: 0.359
+    - _Power: 0.5
+    - _Scale: 0.1
     - _Speed: 1
-    - _Speed1: 1
-    - _Speed2: 1
-    - _Speed3: 1.06
-    - _Speed4: 0.6
+    - _Speed1: 0.88
+    - _Speed2: 0.35
+    - _Speed3: 1.29
+    - _Speed4: 1.02
     - _Speed5: 2.47
-    - _Speed6: 3.29
-    - _TimeScale: 7
+    - _Speed6: 2.01
+    - _TimeScale: 4
     m_Colors:
+    - _Ambient: {r: 0.2971698, g: 1, b: 0.9719676, a: 1}
     - _Color: {r: 0.18841223, g: 0.43531305, b: 0.5471698, a: 0.64705884}
-    - _ColorBottom: {r: 0.18903525, g: 0.37544018, b: 0.6792453, a: 0.7176471}
-    - _ColorTop: {r: 0.56545925, g: 0.7354653, b: 0.9150943, a: 0.45490196}
+    - _ColorBottom: {r: 0.07262371, g: 0.17056836, b: 0.3018868, a: 0.3882353}
+    - _ColorTop: {r: 0.5990566, g: 0.7967047, b: 1, a: 0.23921569}
     - _Direction: {r: 1.25, g: 0, b: 0.75, a: 1}
-    - _Direction1: {r: 1, g: 0, b: 0, a: 1}
-    - _Direction2: {r: 0.5, g: 0, b: 0.5, a: 1}
-    - _Direction3: {r: -2.9, g: 0, b: -1.25, a: 1}
+    - _Direction1: {r: 0.5, g: 0, b: 0.25, a: 1}
+    - _Direction2: {r: -0.89, g: 0, b: 1.35, a: 1}
+    - _Direction3: {r: -2.5, g: 0, b: -4.25, a: 1}
     - _Direction4: {r: 0, g: 0, b: -1.5, a: 1}
-    - _Direction5: {r: 0, g: 0, b: -0.1, a: 1}
-    - _Direction6: {r: -0.1, g: 0, b: 0.15, a: 1}
+    - _Direction5: {r: -0.21, g: 0, b: 0.56, a: 1}
+    - _Direction6: {r: 1.36, g: 0, b: 1.15, a: 1}
+    - _Emission: {r: 0, g: 0, b: 0, a: 1}
+    - _Normal1Speed: {r: 0.5, g: -1.4, b: 0, a: 1}
+    - _Normal2Speed: {r: -0.5, g: 0, b: 0, a: 1}
+    - _Normal3Speed: {r: -0.4, g: 1, b: 0, a: 1}
+    - _SpecColor: {r: 1, g: 0.9093896, b: 0.41037738, a: 1}
   m_BuildTextureStacks: []
