@@ -48,9 +48,9 @@ Material:
     - _Amplitude5: 0.02
     - _Amplitude6: 0.163
     - _Attenuation: 0.5
-    - _ColorLerpStrength: -0.077
+    - _ColorLerpStrength: -0.052
     - _Depth: 6.6
-    - _Distortion: 0.8
+    - _Distortion: 0.1
     - _EdgeLength: 4
     - _Glossiness: 0.9
     - _LambertWrapAmount: 0.46
@@ -65,8 +65,8 @@ Material:
     - _NormalStrength: 0.627
     - _Phase: 0
     - _Phong: 0.359
-    - _Power: 1.5
-    - _Scale: 10
+    - _Power: 3
+    - _Scale: 5
     - _Speed: 1
     - _Speed1: 1
     - _Speed2: 0.75
@@ -79,7 +79,7 @@ Material:
     - _Ambient: {r: 0.23137257, g: 0.3921569, b: 0.6509804, a: 1}
     - _Color: {r: 0.18841223, g: 0.43531305, b: 0.5471698, a: 0.64705884}
     - _ColorBottom: {r: 0.23028658, g: 0.39386168, b: 0.6509434, a: 0.9137255}
-    - _ColorTop: {r: 0.28702387, g: 0.5312985, b: 0.8113208, a: 0.92156863}
+    - _ColorTop: {r: 1, g: 1, b: 1, a: 0.92156863}
     - _Direction: {r: 1.25, g: 0, b: 0.75, a: 1}
     - _Direction1: {r: -1, g: 0, b: 0, a: 1}
     - _Direction2: {r: -1, g: 0, b: 0.2, a: 1}
