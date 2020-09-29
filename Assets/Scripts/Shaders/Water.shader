@@ -79,7 +79,7 @@ Shader "Custom/Watere"
 			GrabPass { "_BackgroundTexture" }
 
 			CGPROGRAM
-			#pragma surface surf StandardTranslucent vertex:vert fullforwardshadows addshadow
+			#pragma surface surf StandardTranslucent vertex:vert fullforwardshadows addshadow tessellate:tessEdge tessphong:_Phong
 
 			// Use shader model 3.0 target, to get nicer looking lighting
 			#pragma target 3.0
@@ -175,7 +175,7 @@ Shader "Custom/Watere"
 
 			float3 H = normalize(L + N * _Distortion);
 			float VdotH = pow(saturate(dot(V, -H)), _Power) * _Scale;
-			float3 I = _Attenuation * (VdotH + _Ambient) * thickness;
+			float3 I = _Attenuation * (VdotH + _Ambient) * lerp(0.1, 1, saturate((N.x - N.y + N.z)));;
 
 			// Fake wavelength 
 			I.r *= 0.25;
@@ -204,20 +204,19 @@ Shader "Custom/Watere"
 
 		void surf(Input IN, inout SurfaceOutputStandard o)
 		{
-			o.Albedo = lerp(_ColorBottom, _ColorTop, IN.color.r);
-			//o.Alpha = IN.color.a;
-			
-			// Use texcoord1 for storing grabpos for transparancy
-			float clipPos = UnityObjectToClipPos(IN.worldPos);
-			float4 grabPos = ComputeGrabScreenPos(clipPos);
+			float4 vertex = IN.color;
+			float4 colorBase = lerp(0, 1, saturate(vertex.y - _ColorLerpStrength));
 
-			half4 background = tex2Dproj(_BackgroundTexture, UNITY_PROJ_COORD(IN.grabUV));	
+			//o.Albedo = lerp(_ColorBottom, _ColorTop, IN.color.r);
+
+			float4 hpos = UnityObjectToClipPos(vertex);
+			float4 grabUV = ComputeGrabScreenPos(hpos);
+
+			half4 background = tex2Dproj(_BackgroundTexture, UNITY_PROJ_COORD(grabUV));
 			background.r *= 0.25;
 			background.g *= 0.7;
 			background.b *= 0.8;
 			o.Emission = background * 0.5;
-
-			thickness = (IN.color.g + 0.1) * 0.75;
 
 			o.Metallic = _Metallic;
 			o.Smoothness = _Glossiness;
@@ -251,8 +250,8 @@ Shader "Custom/Watere"
 			return cross(normalize(offsetX - pos), normalize(offsetZ - pos));
 		}
 
-		void vert(inout appdata_full v, out Input o) {
-			UNITY_INITIALIZE_OUTPUT(Input, o);
+		void vert(inout appdata_full v) {
+			//UNITY_INITIALIZE_OUTPUT(Input, o);
 
 			float3 worldPos = mul(unity_ObjectToWorld, v.vertex);
 
@@ -270,15 +269,9 @@ Shader "Custom/Watere"
 			float3 offsetZ = GerstnerWaveToWorld(wave1.offsetZ + wave2.offsetZ + wave3.offsetZ + wave4.offsetZ + wave5.offsetZ + wave6.offsetZ, v.vertex.xyz + float3(_NeighbourDistance, 0, 0));
 
 			v.vertex.xyz = waveWorldPos;
-			v.normal.xyz = GetNormal(waveWorldPos, offsetX, offsetZ);
-
-			thickness = saturate(v.normal.x + v.normal.y + v.normal.z);
-
-			v.color.r = lerp(0, 1, saturate(v.vertex.y - _ColorLerpStrength));
-			v.color.g = lerp(0.1, 1, saturate((v.normal.x - v.normal.y + v.normal.z)));
-
-			float4 hpos = UnityObjectToClipPos(v.vertex);
-			o.grabUV = ComputeGrabScreenPos(hpos);
+			v.normal.xyz = GetNormal(waveWorldPos, offsetX, offsetZ);			
+			
+			v.color = v.vertex;
 		}
 		ENDCG
 
