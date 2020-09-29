@@ -1,4 +1,6 @@
-﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
+// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
 
 // Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
 
@@ -74,14 +76,19 @@ Shader "Custom/Watere"
 			Cull off
 			LOD 600
 
+			GrabPass { "_BackgroundTexture" }
+
 			CGPROGRAM
-			#pragma surface surf StandardTranslucent vertex:vert tessellate:tessEdge tessphong:_Phong fullforwardshadows addshadow
+			#pragma surface surf StandardTranslucent vertex:vert fullforwardshadows addshadow
 
 			// Use shader model 3.0 target, to get nicer looking lighting
 			#pragma target 3.0
 
+			#include "UnityCG.cginc"
 			#include "UnityStandardUtils.cginc"
 			#include "Tessellation.cginc"
+
+		sampler2D _BackgroundTexture;
 
 		sampler2D _Normal1;
 		sampler2D _Normal2;
@@ -122,6 +129,8 @@ Shader "Custom/Watere"
 		{
 			float3 worldPos;
 			float4 color : COLOR;
+			float4 screenPos;
+			float4 grabUV;
 		};
 
 		half _Glossiness;
@@ -168,6 +177,11 @@ Shader "Custom/Watere"
 			float VdotH = pow(saturate(dot(V, -H)), _Power) * _Scale;
 			float3 I = _Attenuation * (VdotH + _Ambient) * thickness;
 
+			// Fake wavelength 
+			I.r *= 0.25;
+			I.g *= 0.7;
+			I.b *= 0.8;
+
 			pbr.rgb = pbr.rgb + gi.light.color * I;
 			return pbr;
 		}
@@ -192,13 +206,21 @@ Shader "Custom/Watere"
 		{
 			o.Albedo = lerp(_ColorBottom, _ColorTop, IN.color.r);
 			//o.Alpha = IN.color.a;
+			
+			// Use texcoord1 for storing grabpos for transparancy
+			float clipPos = UnityObjectToClipPos(IN.worldPos);
+			float4 grabPos = ComputeGrabScreenPos(clipPos);
+
+			half4 background = tex2Dproj(_BackgroundTexture, UNITY_PROJ_COORD(IN.grabUV));	
+			background.r *= 0.25;
+			background.g *= 0.7;
+			background.b *= 0.8;
+			o.Emission = background * 0.5;
 
 			thickness = (IN.color.g + 0.1) * 0.75;
 
 			o.Metallic = _Metallic;
-			//o.Specular = (1, 1, 1, 0.001);
 			o.Smoothness = _Glossiness;
-			o.Emission = _Emission;
 
 			float time = _Time * _TimeScale;
 
@@ -229,7 +251,9 @@ Shader "Custom/Watere"
 			return cross(normalize(offsetX - pos), normalize(offsetZ - pos));
 		}
 
-		void vert(inout appdata_full v) {
+		void vert(inout appdata_full v, out Input o) {
+			UNITY_INITIALIZE_OUTPUT(Input, o);
+
 			float3 worldPos = mul(unity_ObjectToWorld, v.vertex);
 
 			float time = _Time * _TimeScale;
@@ -251,7 +275,10 @@ Shader "Custom/Watere"
 			thickness = saturate(v.normal.x + v.normal.y + v.normal.z);
 
 			v.color.r = lerp(0, 1, saturate(v.vertex.y - _ColorLerpStrength));
-			v.color.g = lerp(0, 1, saturate((v.normal.x + v.normal.y + v.normal.z) - length(ObjSpaceViewDir(v.vertex)) / 50));
+			v.color.g = lerp(0.1, 1, saturate((v.normal.x - v.normal.y + v.normal.z)));
+
+			float4 hpos = UnityObjectToClipPos(v.vertex);
+			o.grabUV = ComputeGrabScreenPos(hpos);
 		}
 		ENDCG
 
