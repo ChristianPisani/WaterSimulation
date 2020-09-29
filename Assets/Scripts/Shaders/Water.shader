@@ -207,7 +207,7 @@ Shader "Custom/Watere"
 			float4 vertex = IN.color;
 			float4 colorBase = lerp(0, 1, saturate(vertex.y - _ColorLerpStrength));
 
-			//o.Albedo = lerp(_ColorBottom, _ColorTop, IN.color.r);
+			o.Albedo = lerp(_ColorBottom, _ColorTop, colorBase.r);
 
 			float4 hpos = UnityObjectToClipPos(vertex);
 			float4 grabUV = ComputeGrabScreenPos(hpos);
