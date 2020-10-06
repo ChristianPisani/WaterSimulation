@@ -71,7 +71,7 @@ Shader "Custom/Watere"
 	}
 		SubShader
 		{
-			Tags { "Queue" = "Transparent" "IgnoreProjector" = "true" "ForceNoShadowCasting" = "True"  "RenderType" = "Opaque" }
+			Tags { "Queue" = "Transparent" "IgnoreProjector" = "true" "ForceNoShadowCasting" = "False"  "RenderType" = "Opaque" }
 			ZWrite on
 			Cull off
 			LOD 600
@@ -89,6 +89,8 @@ Shader "Custom/Watere"
 			#include "Tessellation.cginc"
 
 		sampler2D _BackgroundTexture;
+
+		sampler2D _DepthTexture;
 
 		sampler2D _Normal1;
 		sampler2D _Normal2;
@@ -175,7 +177,10 @@ Shader "Custom/Watere"
 
 			float3 H = normalize(L + N * _Distortion);
 			float VdotH = pow(saturate(dot(V, -H)), _Power) * _Scale;
-			float3 I = _Attenuation * (VdotH + _Ambient) * lerp(0.1, 1, saturate((N.x - N.y + N.z)));;
+			
+			float thickness = lerp(0.1, 0.8, dot(N, -float3(1,0.25,1)));
+
+			float3 I = _Attenuation * (VdotH + _Ambient) * thickness;
 
 			// Fake wavelength 
 			I.r *= 0.25;
@@ -212,10 +217,14 @@ Shader "Custom/Watere"
 			float4 hpos = UnityObjectToClipPos(vertex);
 			float4 grabUV = ComputeGrabScreenPos(hpos);
 
+			float sceneZ = LinearEyeDepth(tex2Dproj(_DepthTexture, UNITY_PROJ_COORD(IN.screenPos)).r);
+			
 			half4 background = tex2Dproj(_BackgroundTexture, UNITY_PROJ_COORD(grabUV));
 			background.r *= 0.25;
 			background.g *= 0.7;
 			background.b *= 0.8;
+
+
 			o.Emission = background * 0.5;
 
 			o.Metallic = _Metallic;
@@ -319,5 +328,4 @@ Shader "Custom/Watere"
 		}
 		ENDCG
 		}
-			FallBack "Diffuse"
 }

@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Custom_Unlitshader
+  m_Shader: {fileID: 4800000, guid: 10005f5bc6e9bd34bb6ada3d9428d643, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _amplitude: 1.72
+    - _frequency: 0.63
+    - _gain: 0.488
+    - _lacunarity: 3.3
+    - _monochromatic: 0
+    - _octaves: 7
+    - _offsetX: 0
+    - _offsetY: 0
+    - _power: 1
+    - _range: 0.5
+    - _scale: 1
+    - _value: 0
+    m_Colors:
+    - _color: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []

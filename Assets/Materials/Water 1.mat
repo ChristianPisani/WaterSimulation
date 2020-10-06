@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Water
+  m_Name: Water 1
   m_Shader: {fileID: 4800000, guid: cbee0ce9a1af9d2428843e4545ec1d39, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -47,10 +47,10 @@ Material:
     - _Amplitude4: 0.039
     - _Amplitude5: 0.02
     - _Amplitude6: 0.163
-    - _Attenuation: 0.5
-    - _ColorLerpStrength: -0.052
+    - _Attenuation: 0.2
+    - _ColorLerpStrength: 0.188
     - _Depth: 6.6
-    - _Distortion: 0.1
+    - _Distortion: 0.05
     - _EdgeLength: 4
     - _Glossiness: 0.9
     - _LambertWrapAmount: 0.46
@@ -65,8 +65,8 @@ Material:
     - _NormalStrength: 0.627
     - _Phase: 0
     - _Phong: 0.359
-    - _Power: 3
-    - _Scale: 5
+    - _Power: 1.2
+    - _Scale: 4
     - _Speed: 1
     - _Speed1: 1
     - _Speed2: 0.75
@@ -76,7 +76,7 @@ Material:
     - _Speed6: 1.75
     - _TimeScale: 4
     m_Colors:
-    - _Ambient: {r: 0.23137257, g: 0.3921569, b: 0.6509804, a: 1}
+    - _Ambient: {r: 0, g: 0, b: 0, a: 1}
     - _Color: {r: 0.18841223, g: 0.43531305, b: 0.5471698, a: 0.64705884}
     - _ColorBottom: {r: 0.23028658, g: 0.39386168, b: 0.6509434, a: 0.9137255}
     - _ColorTop: {r: 1, g: 1, b: 1, a: 0.92156863}

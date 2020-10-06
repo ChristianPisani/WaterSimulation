@@ -1,0 +1,68 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+float _Time;
+
+const float PI = 3.14159265;
+const float TwoPI = 3.14159265 * 2.0;
+const float e = 2.718281828;
+const float g = 9.81;
+
+float2 PhilipsSpectrum(float A, float2 k, float V, float2 w) {
+
+	//Ph(k) = A exp(−1 / (kL)2) / k4 * | kˆ · wˆ |
+	// L = V^2 / g;
+	// V = wind of speed V
+	// w = wind direction
+	float L = (V*V) / g;
+	float kLength = length(k);
+	float kL = kLength * L;
+
+
+	// The cosine factor | kˆ ·wˆ | 2 in the Phillips spectrum eliminates waves that move perpendicular to the wind direction
+
+	float divPart = exp(-1 / (kL*kL)) / (kLength*kLength*kLength*kLength);
+
+	float2 norm = normalize(k * w);
+	float2 cosineFactor = dot(norm, norm);
+
+	return A * divPart * cosineFactor;
+
+	/*
+	 This model, while relatively simple,
+	 has poor convergence properties at high values of the wavenumber
+	 |k|. A simple fix is to suppress waves smaller that a small length
+	 `  L, and modify the Phillips spectrum by the multiplicative factor
+		exp−k2`2
+	*/
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{   
+	float t = _Time;
+
+	//n and m are integers with bounds −N / 2 ≤ n < N / 2
+	float n = id.x;
+	float m = id.y;
+
+	float V = 2;
+	float2 w = float2(0.5, 1);
+	float2 L = (V*V) / g;
+	
+	float2 k = float2(
+		(TwoPI * n) / L.x,
+		(TwoPI * m) / L.y
+	);
+	
+	//h(x, t) = SUM(k)  h˜(k,t) * exp(i * dot(k, x));
+	// The height amplitude Fourier components, h˜(k, t), determine the structure of the surface
+	// h˜(k,t) = HeightAmplitudeFourier(k, t)
+
+	float2 philips = PhilipsSpectrum(2, k, V, w);
+
+	Result[id.xy] = float4(philips.x, philips.y, 0, 1);
+}

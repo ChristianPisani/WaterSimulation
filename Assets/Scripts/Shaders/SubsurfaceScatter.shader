@@ -15,7 +15,7 @@
 	}
 		SubShader
 		{
-			Tags { "Queue" = "Transparent" "IgnoreProjector" = "true" "ForceNoShadowCasting" = "True"  "RenderType" = "Opaque" }
+			Tags { "Queue" = "Transparent" "IgnoreProjector" = "False" "ForceNoShadowCasting" = "False"  "RenderType" = "Opaque" }
 			ZWrite on
 			Cull off
 			LOD 600
@@ -63,7 +63,7 @@
 
 			float3 thickness = lerp(0.1, 1, saturate((N.x - N.y + N.z)));
 
-			float3 I = _Attenuation * (VdotH + _Ambient) * thickness;
+			float3 I = _Attenuation * (VdotH + _Ambient) * thickness * _Albedo;
 			
 			pbr.rgb = pbr.rgb + gi.light.color * I;
 

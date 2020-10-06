@@ -20,7 +20,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs: []
     m_Floats:
-    - _Attenuation: 0.4
+    - _Attenuation: 0.5
     - _Distortion: 0.1
     - _Glossiness: 0.437
     - _Metallic: 0
