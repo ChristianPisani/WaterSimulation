@@ -54,6 +54,31 @@ namespace Assets.Scripts {
             TimedependentHTexCPU.Apply();
         }
 
+        public void Start()
+        {
+            VisualizeNoiseGpu();
+        }
+
+        public void Update()
+        {
+            if (H0KTex == null || H0NegativeKTex == null) return;
+
+            var kernel = FFTComputeShader.FindKernel("GenerateTimeDependentTexture");
+
+            FFTComputeShader.SetTexture(kernel, "H0KTexture", H0KTex);
+            FFTComputeShader.SetTexture(kernel, "H0NegKTexture", H0NegativeKTex);
+            FFTComputeShader.SetTexture(kernel, "HTKTexture", TimedependentHTex);
+            FFTComputeShader.SetTexture(kernel, "NoiseTexture", NoiseTexture);
+            FFTComputeShader.SetFloat("_Time", Time.time);
+            FFTComputeShader.SetFloat("_Amplitude", Amplitude);
+            FFTComputeShader.SetFloat("_WindForce", WindForce);
+            FFTComputeShader.SetVector("_WindDirection", WindDirection);
+            FFTComputeShader.SetFloat("_Depth", Depth);
+            FFTComputeShader.SetInt("_Resolution", N);
+
+            FFTComputeShader.Dispatch(kernel, N / 8, N / 8, 1);
+        }
+
         public void VisualizeNoiseGpu()
         {
             if (NoiseTexture == null) return;
@@ -63,16 +88,17 @@ namespace Assets.Scripts {
             TimedependentHTex = new RenderTexture(N, N, 1);
 
             H0KTex.enableRandomWrite = true;
-            H0NegativeKTex.enableRandomWrite = true;
+            H0NegativeKTex.enableRandomWrite = true;            
             TimedependentHTex.enableRandomWrite = true;
 
             H0KTex.Create();
             H0NegativeKTex.Create();
             TimedependentHTex.Create();
 
-            int kernel = FFTComputeShader.FindKernel("CSMain");
+            int kernel = FFTComputeShader.FindKernel("Setup");
 
             FFTComputeShader.SetTexture(kernel, "H0KTexture", H0KTex);
+            FFTComputeShader.SetTexture(kernel, "HTKTexture", TimedependentHTex);
             FFTComputeShader.SetTexture(kernel, "H0NegKTexture", H0NegativeKTex);
             FFTComputeShader.SetTexture(kernel, "NoiseTexture", NoiseTexture);
             FFTComputeShader.SetFloat("_Time", Time.time);

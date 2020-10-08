@@ -15,10 +15,10 @@ Complex Mul(Complex left, Complex right) {
 Complex Add(Complex left, Complex right) {
 	Complex c;
 	
-
 	c.real = (left.real + right.real);
 	c.im = (left.im + right.im);
 
+	return c;
 }
 
 Complex Mul(float c0, Complex c1)

@@ -80,15 +80,11 @@ Complex FourierAmplitude(Complex h0k, Complex h0Negk, float A, float2 k, float V
 
 	Complex firstDispersion = Mul(imaginaryOne, DispercionRelation(k, depth, time));
 	Complex firstPart = Mul(h0k, Exp(Mul(firstDispersion, time)));
-
-	Complex h0NegKConjugate;
-	h0NegKConjugate.real = h0Negk.real;
-	h0NegKConjugate.im = -h0Negk.im;
-
+	
 	Complex imaginaryNegativeOne = ImaginaryNegativeOne();
 
 	Complex secondDispersion = Mul(imaginaryNegativeOne, DispercionRelation(k, depth, time));
-	Complex secondPart = Mul(h0NegKConjugate, Exp(Mul(secondDispersion, time)));
+	Complex secondPart = Mul(h0Negk, Exp(Mul(secondDispersion, time)));
 
 	return Add(firstPart, secondPart);
 }
