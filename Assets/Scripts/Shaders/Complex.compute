@@ -1,0 +1,92 @@
+﻿struct Complex {
+	float real;
+	float im;
+};
+
+Complex Mul(Complex left, Complex right) {
+	Complex c;
+	
+	c.real = (left.real * right.real) - (left.im * right.im);
+	c.im = (left.im * right.real) + (left.real * right.im);
+	
+	return c;
+}
+
+Complex Add(Complex left, Complex right) {
+	Complex c;
+	
+
+	c.real = (left.real + right.real);
+	c.im = (left.im + right.im);
+
+}
+
+Complex Mul(float c0, Complex c1)
+{
+	Complex c;
+
+	c.real = c0 * c1.real;
+	c.im = c0 * c1.im;
+
+	return c;
+};
+
+Complex Add(float c0, Complex c1)
+{
+	Complex c;
+
+	c.real = c0 + c1.real;
+	c.im = c1.im;
+
+	return c;
+};
+
+Complex Add(Complex c0, float c1)
+{
+	Complex c;
+
+	c.real = c0.real + c1;
+	c.im = c0.im;
+
+	return c;
+};
+
+Complex Mul(Complex c0, float c1)
+{
+	Complex c;
+
+	c.real = c0.real * c1;
+	c.im = c0.im * c1;
+
+	return c;
+};
+
+
+Complex Exp(Complex value) /* The complex number raised to e */
+{
+	Complex c;
+
+	float expReal = exp(value.real);
+	c.real = expReal * cos(value.im);
+	c.im = expReal * sin(value.im);
+
+	return c;
+};
+
+Complex ImaginaryOne() {
+	Complex imaginaryOne;
+
+	imaginaryOne.real = 0;
+	imaginaryOne.im = 1;
+
+	return imaginaryOne;
+};
+
+Complex ImaginaryNegativeOne() {
+	Complex imaginaryOne;
+
+	imaginaryOne.real = -0;
+	imaginaryOne.im = -1;
+
+	return imaginaryOne;
+};

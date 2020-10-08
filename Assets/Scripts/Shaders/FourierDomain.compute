@@ -1,0 +1,94 @@
+﻿// k
+float2 GetWaveDirection(float x, float y, float N)
+{
+	float L = 1000;
+	float n = x - (N / 2.0);
+	float m = y - (N / 2.0);
+
+	return float2(
+		(2.0 * 3.14159265 * n) / L,
+		(2.0 * 3.14159265 * m) / L
+	);
+}
+
+float PhilipsSpectrum(float A, float2 k, float V, float2 w)
+{
+	//Ph(k) = A exp(−1 / (kL)2) / k4 * | kˆ · wˆ |
+	// L = V^2 / g;
+	// V = wind of speed V
+	// w = wind direction
+	float L = (V * V) / 9.81;
+	float kL = length(k);
+	float kSquared = pow(kL, 2);
+	float LSquared = pow(L, 2);
+
+	// The cosine factor | kˆ ·wˆ | 2 in the Phillips spectrum eliminates waves that move perpendicular to the wind direction
+	float divPart = exp(-1 / pow(kL * L, 2)) / pow(kL, 4);
+
+	float dotProduct = dot(normalize(k), normalize(w));
+	float dotSquared = pow(dotProduct, 2);
+
+	/*
+		This model, while relatively simple,
+		has poor convergence properties at high values of the wavenumber
+		|k|. A simple fix is to suppress waves smaller that a small length
+		`  L, and modify the Phillips spectrum by the multiplicative factor
+		exp−k2`2
+	*/
+	float l = L / 2000.0;
+	float removedSmallWaves = exp(-pow(kL, 2) * pow(l, 2));
+
+	return A * divPart * dotSquared * removedSmallWaves;
+}
+
+// h0(k)
+Complex FourierAmplitudeFirst(float A, float2 k, float V, float2 w, float2 random)
+{	
+	float philips = sqrt(PhilipsSpectrum(A, k, V, w));
+
+	Complex imaginaryOne = ImaginaryOne();
+
+	return Mul((1.0 / sqrt(2.0)), Mul(Add(random.x, Mul(imaginaryOne, random.y)), philips));
+}
+
+float BasicFrequence(float time)
+{
+	/*
+		T for example, it is necessary that all frequencies be multiples of
+		the basic frequence
+		ω0 ≡ 2π/T
+	 */
+
+	return (3.14159265 * 2) / time;
+}
+
+
+float DispercionRelation(float2 k, float depth, float time)
+{
+	float basic = BasicFrequence(time);
+	float dispersion = sqrt(9.81 * length(k) * tanh(length(k) * depth));
+
+	float tilingDispersion = ((int)(dispersion / basic)) * basic;
+
+	return tilingDispersion;
+}
+
+//h(k, t)
+Complex FourierAmplitude(Complex h0k, Complex h0Negk, float A, float2 k, float V, float2 w, float depth, float time)
+{
+	Complex imaginaryOne = ImaginaryOne();
+
+	Complex firstDispersion = Mul(imaginaryOne, DispercionRelation(k, depth, time));
+	Complex firstPart = Mul(h0k, Exp(Mul(firstDispersion, time)));
+
+	Complex h0NegKConjugate;
+	h0NegKConjugate.real = h0Negk.real;
+	h0NegKConjugate.im = -h0Negk.im;
+
+	Complex imaginaryNegativeOne = ImaginaryNegativeOne();
+
+	Complex secondDispersion = Mul(imaginaryNegativeOne, DispercionRelation(k, depth, time));
+	Complex secondPart = Mul(h0NegKConjugate, Exp(Mul(secondDispersion, time)));
+
+	return Add(firstPart, secondPart);
+}
