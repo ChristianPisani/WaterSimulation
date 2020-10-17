@@ -1,12 +1,17 @@
 ﻿#pragma kernel Setup
 #pragma kernel GenerateTimeDependentTexture
 
-#include "Complex.compute"
-#include "FourierDomain.compute"
-
 RWTexture2D<float4> H0KTexture;
 RWTexture2D<float4> H0NegKTexture;
 RWTexture2D<float4> HTKTexture;
+RWTexture2D<float4> ButterflyTexture;
+RWTexture2D<float4> Pong0Texture;
+RWTexture2D<float4> Pong1Texture;
+RWTexture2D<float4> DisplacementTexture;
+
+#include "Complex.compute"
+#include "FourierDomain.compute"
+#include "ButterflyTexture.compute"
 
 Texture2D<float4> NoiseTexture;
 
@@ -35,6 +40,23 @@ void Setup (uint3 id : SV_DispatchThreadID)
 	Complex htk = FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t);
 
 	HTKTexture[id.xy] = float4(htk.real, htk.im, 0, 1);
+
+	CreateButterflyTexture(_Resolution, id.xy);
+
+	pingpong = 0;
+	for (int i = 0; i < log2(_Resolution); i++) {
+		HorizontalButterFlies(id.xy, i + 1);
+		pingpong += 1;
+		pingpong = pingpong % 2;
+	}
+
+	for (int j = 0; j < log2(_Resolution); j++) {
+		VerticalButterFlies(id.xy, j + 1);
+		pingpong += 1;
+		pingpong = pingpong % 2;
+	}
+
+	InversionPermutation(id.xy, _Resolution);
 }
 
 [numthreads(8, 8, 1)]

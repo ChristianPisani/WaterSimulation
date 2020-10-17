@@ -40,6 +40,21 @@ class TessendorfEditor : Editor {
         Texture2D tex2 = AssetPreview.GetAssetPreview(((Tessendorf)target).TimedependentHTex);
         GUILayout.Label(tex2);
 
+        GUILayout.Label("Butterfly texture (GPU)");
+        Texture2D butterfly = AssetPreview.GetAssetPreview(((Tessendorf)target).ButterflyTexture);
+        GUILayout.Label(butterfly);
+
+        GUILayout.Label("Ping pong textures (GPU)");
+        Texture2D pong0 = AssetPreview.GetAssetPreview(((Tessendorf)target).Pong0Texture);
+        GUILayout.Label(pong0);
+        Texture2D pong1 = AssetPreview.GetAssetPreview(((Tessendorf)target).Pong1Texture);
+        GUILayout.Label(pong1);
+
+        GUILayout.Label("Displacement texture (GPU)");
+        Texture2D displacement = AssetPreview.GetAssetPreview(((Tessendorf)target).DisplacementTexture);
+        GUILayout.Label(displacement);
+
+
         GUILayout.Label("Gaussian noise texture");
         Texture2D noiseTex = AssetPreview.GetAssetPreview(((Tessendorf)target).NoiseTexture);
         GUILayout.Label(noiseTex);

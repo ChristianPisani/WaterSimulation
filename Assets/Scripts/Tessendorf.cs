@@ -20,6 +20,10 @@ namespace Assets.Scripts {
         public RenderTexture H0KTex;
         public RenderTexture H0NegativeKTex;
         public RenderTexture TimedependentHTex;
+        public RenderTexture ButterflyTexture;
+        public RenderTexture Pong0Texture;
+        public RenderTexture Pong1Texture;
+        public RenderTexture DisplacementTexture;
 
         public Texture2D NoiseTexture;
 
@@ -68,6 +72,10 @@ namespace Assets.Scripts {
             FFTComputeShader.SetTexture(kernel, "H0KTexture", H0KTex);
             FFTComputeShader.SetTexture(kernel, "H0NegKTexture", H0NegativeKTex);
             FFTComputeShader.SetTexture(kernel, "HTKTexture", TimedependentHTex);
+            FFTComputeShader.SetTexture(kernel, "ButterflyTexture", ButterflyTexture);
+            FFTComputeShader.SetTexture(kernel, "Pong0Texture", Pong0Texture);
+            FFTComputeShader.SetTexture(kernel, "Pong1Texture", Pong1Texture);
+            FFTComputeShader.SetTexture(kernel, "DisplacementTexture", DisplacementTexture);
             FFTComputeShader.SetTexture(kernel, "NoiseTexture", NoiseTexture);
             FFTComputeShader.SetFloat("_Time", Time.time);
             FFTComputeShader.SetFloat("_Amplitude", Amplitude);
@@ -86,20 +94,36 @@ namespace Assets.Scripts {
             H0KTex = new RenderTexture(N, N, 1);
             H0NegativeKTex = new RenderTexture(N, N, 1);
             TimedependentHTex = new RenderTexture(N, N, 1);
+            ButterflyTexture = new RenderTexture((int)Math.Log(N, 2), N, 1);
+            Pong0Texture = new RenderTexture(N, N, 1);
+            Pong1Texture = new RenderTexture(N, N, 1);
+            DisplacementTexture = new RenderTexture(N, N, 1);
 
             H0KTex.enableRandomWrite = true;
             H0NegativeKTex.enableRandomWrite = true;            
             TimedependentHTex.enableRandomWrite = true;
+            ButterflyTexture.enableRandomWrite = true;
+            Pong0Texture.enableRandomWrite = true;
+            Pong1Texture.enableRandomWrite = true;
+            DisplacementTexture.enableRandomWrite = true;
 
             H0KTex.Create();
             H0NegativeKTex.Create();
             TimedependentHTex.Create();
+            ButterflyTexture.Create();
+            Pong0Texture.Create();
+            Pong1Texture.Create();
+            DisplacementTexture.Create();
 
             int kernel = FFTComputeShader.FindKernel("Setup");
 
             FFTComputeShader.SetTexture(kernel, "H0KTexture", H0KTex);
             FFTComputeShader.SetTexture(kernel, "HTKTexture", TimedependentHTex);
             FFTComputeShader.SetTexture(kernel, "H0NegKTexture", H0NegativeKTex);
+            FFTComputeShader.SetTexture(kernel, "ButterflyTexture", ButterflyTexture);
+            FFTComputeShader.SetTexture(kernel, "Pong0Texture", Pong0Texture);
+            FFTComputeShader.SetTexture(kernel, "Pong1Texture", Pong1Texture);
+            FFTComputeShader.SetTexture(kernel, "DisplacementTexture", DisplacementTexture);
             FFTComputeShader.SetTexture(kernel, "NoiseTexture", NoiseTexture);
             FFTComputeShader.SetFloat("_Time", Time.time);
             FFTComputeShader.SetFloat("_Amplitude", Amplitude);
