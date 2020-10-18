@@ -25,6 +25,8 @@ namespace Assets.Scripts {
         public RenderTexture Pong1Texture;
         public RenderTexture DisplacementTexture;
 
+        ComputeBuffer BitReversedBuffer;
+
         public Texture2D NoiseTexture;
 
         private FourierDomain _fftFunctions = new FourierDomain();
@@ -67,11 +69,13 @@ namespace Assets.Scripts {
         {
             if (H0KTex == null || H0NegativeKTex == null) return;
 
-            var kernel = FFTComputeShader.FindKernel("GenerateTimeDependentTexture");
+            int kernel = FFTComputeShader.FindKernel("GenerateTimeDependentTexture");
+            int displacementKernel = FFTComputeShader.FindKernel("GenerateDisplacementTexture");
+            int butterflyKernel = FFTComputeShader.FindKernel("GenerateButterflyTexture");
 
             FFTComputeShader.SetTexture(kernel, "H0KTexture", H0KTex);
-            FFTComputeShader.SetTexture(kernel, "H0NegKTexture", H0NegativeKTex);
             FFTComputeShader.SetTexture(kernel, "HTKTexture", TimedependentHTex);
+            FFTComputeShader.SetTexture(kernel, "H0NegKTexture", H0NegativeKTex);
             FFTComputeShader.SetTexture(kernel, "ButterflyTexture", ButterflyTexture);
             FFTComputeShader.SetTexture(kernel, "Pong0Texture", Pong0Texture);
             FFTComputeShader.SetTexture(kernel, "Pong1Texture", Pong1Texture);
@@ -85,6 +89,48 @@ namespace Assets.Scripts {
             FFTComputeShader.SetInt("_Resolution", N);
 
             FFTComputeShader.Dispatch(kernel, N / 8, N / 8, 1);
+
+
+            var bitReversedArray = new int[N];
+            for(int i = 0; i < N; i++)
+            {
+                bitReversedArray[i] = BitReverse(i, N);
+            }
+            BitReversedBuffer = new ComputeBuffer(N, sizeof(int));
+            BitReversedBuffer.SetData(bitReversedArray);
+            FFTComputeShader.SetBuffer(butterflyKernel, "BitReversed", BitReversedBuffer);
+
+            FFTComputeShader.SetTexture(butterflyKernel, "ButterflyTexture", ButterflyTexture);
+            FFTComputeShader.SetTexture(butterflyKernel, "Pong0Texture", Pong0Texture);
+            FFTComputeShader.SetTexture(butterflyKernel, "Pong1Texture", Pong1Texture);
+            FFTComputeShader.Dispatch(butterflyKernel, N / 8, N / 8, 1);
+
+            FFTComputeShader.SetTexture(displacementKernel, "ButterflyTexture", ButterflyTexture);
+            FFTComputeShader.SetTexture(displacementKernel, "Pong0Texture", Pong0Texture);
+            FFTComputeShader.SetTexture(displacementKernel, "Pong1Texture", Pong1Texture);
+            FFTComputeShader.SetTexture(displacementKernel, "DisplacementTexture", DisplacementTexture);
+            FFTComputeShader.Dispatch(displacementKernel, N / 8, N / 8, 1);            
+        }
+
+        private void OnDestroy()
+        {
+            BitReversedBuffer.Release();
+        }
+
+        public int BitReverse(int i, int N)
+        {
+            int j = i;
+            int Sum = 0;
+            int W = 1;
+            int M = N / 2;
+            while (M != 0)
+            {
+                j = ((i & M) > M - 1) ? 1 : 0;
+                Sum += j * W;
+                W *= 2;
+                M /= 2;
+            }
+            return Sum;
         }
 
         public void VisualizeNoiseGpu()
@@ -116,6 +162,8 @@ namespace Assets.Scripts {
             DisplacementTexture.Create();
 
             int kernel = FFTComputeShader.FindKernel("Setup");
+            int displacementKernel = FFTComputeShader.FindKernel("GenerateDisplacementTexture");
+            int butterflyKernel = FFTComputeShader.FindKernel("GenerateButterflyTexture");
 
             FFTComputeShader.SetTexture(kernel, "H0KTexture", H0KTex);
             FFTComputeShader.SetTexture(kernel, "HTKTexture", TimedependentHTex);
@@ -133,6 +181,28 @@ namespace Assets.Scripts {
             FFTComputeShader.SetInt("_Resolution", N);
 
             FFTComputeShader.Dispatch(kernel, N / 8, N / 8, 1);
+
+            var bitReversedArray = new int[N];
+            for (int i = 0; i < N; i++)
+            {
+                bitReversedArray[i] = BitReverse(i, N);
+            }
+            BitReversedBuffer = new ComputeBuffer(N, sizeof(int));
+            BitReversedBuffer.SetData(bitReversedArray);
+            FFTComputeShader.SetBuffer(butterflyKernel, "BitReversed", BitReversedBuffer);
+            
+            FFTComputeShader.SetTexture(butterflyKernel, "ButterflyTexture", ButterflyTexture);
+            FFTComputeShader.SetTexture(butterflyKernel, "Pong0Texture", Pong0Texture);
+            FFTComputeShader.SetTexture(butterflyKernel, "Pong1Texture", Pong1Texture);
+            FFTComputeShader.Dispatch(butterflyKernel, N / 8, N / 8, 1);
+
+            FFTComputeShader.SetTexture(displacementKernel, "ButterflyTexture", ButterflyTexture);
+            FFTComputeShader.SetTexture(displacementKernel, "Pong0Texture", Pong0Texture);
+            FFTComputeShader.SetTexture(displacementKernel, "Pong1Texture", Pong1Texture);
+            FFTComputeShader.SetTexture(displacementKernel, "DisplacementTexture", DisplacementTexture);
+            FFTComputeShader.Dispatch(displacementKernel, N / 8, N / 8, 1);
+
+            SaveTexture(ButterflyTexture, "C:/Users/Dobbydoo/Pictures/ButterflyTexture.png");
         }
 
         public void CreateGaussianNoiseTexture()
@@ -156,6 +226,20 @@ namespace Assets.Scripts {
                 }
             }
             NoiseTexture.Apply();
+        }
+
+        public void SaveTexture(RenderTexture rt, string path)
+        {
+            byte[] bytes = toTexture2D(rt).EncodeToPNG();
+            System.IO.File.WriteAllBytes(path, bytes);
+        }
+        Texture2D toTexture2D(RenderTexture rTex)
+        {
+            Texture2D tex = new Texture2D(rTex.width, rTex.height, TextureFormat.RGB24, false);
+            RenderTexture.active = rTex;
+            tex.ReadPixels(new Rect(0, 0, rTex.width, rTex.height), 0, 0);
+            tex.Apply();
+            return tex;
         }
     }
 }

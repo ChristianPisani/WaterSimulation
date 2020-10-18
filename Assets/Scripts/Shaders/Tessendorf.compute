@@ -1,5 +1,7 @@
 ﻿#pragma kernel Setup
 #pragma kernel GenerateTimeDependentTexture
+#pragma kernel GenerateDisplacementTexture
+#pragma kernel GenerateButterflyTexture
 
 RWTexture2D<float4> H0KTexture;
 RWTexture2D<float4> H0NegKTexture;
@@ -8,6 +10,7 @@ RWTexture2D<float4> ButterflyTexture;
 RWTexture2D<float4> Pong0Texture;
 RWTexture2D<float4> Pong1Texture;
 RWTexture2D<float4> DisplacementTexture;
+RWBuffer<int> BitReversed;
 
 #include "Complex.compute"
 #include "FourierDomain.compute"
@@ -40,20 +43,32 @@ void Setup (uint3 id : SV_DispatchThreadID)
 	Complex htk = FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t);
 
 	HTKTexture[id.xy] = float4(htk.real, htk.im, 0, 1);
+	Pong0Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
+	Pong1Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
+}
 
+[numthreads(8, 8, 1)]
+void GenerateButterflyTexture(uint3 id : SV_DispatchThreadID)
+{
 	CreateButterflyTexture(_Resolution, id.xy);
+}
 
+[numthreads(8,8,1)]
+void GenerateDisplacementTexture(uint3 id : SV_DispatchThreadID)
+{	
 	pingpong = 0;
 	for (int i = 0; i < log2(_Resolution); i++) {
-		HorizontalButterFlies(id.xy, i + 1);
-		pingpong += 1;
-		pingpong = pingpong % 2;
+		HorizontalButterFlies(id.xy, i);
+
+		pingpong++;
+		pingpong %= 2;
 	}
 
 	for (int j = 0; j < log2(_Resolution); j++) {
-		VerticalButterFlies(id.xy, j + 1);
-		pingpong += 1;
-		pingpong = pingpong % 2;
+		VerticalButterFlies(id.xy, j);
+
+		pingpong++;
+		pingpong %= 2;
 	}
 
 	InversionPermutation(id.xy, _Resolution);
@@ -79,4 +94,6 @@ void GenerateTimeDependentTexture (uint3 id : SV_DispatchThreadID)
 	Complex htk = FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t);
 
 	HTKTexture[id.xy] = float4(h0NegK.real, h0NegK.im, 0, 1);
+	Pong0Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
+	Pong1Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
 }

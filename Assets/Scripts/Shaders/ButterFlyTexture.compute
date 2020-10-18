@@ -22,15 +22,15 @@ uint BitReverse(uint i, uint N)
 void CreateButterflyTexture(int N, float2 uv) {
 	float uvPow = pow(2, uv.x + 1);
 	
-	float k = (uv.y * (N / uvPow)) % N;
+	float k = (uv.y * ((float)N / uvPow)) % N;
 
 	float PI = 3.14159265; // For some reasons gettings errors if i try to define PI globally
 
 	Complex twiddle;
-	twiddle.real = cos(2.0 * PI * k / (float)N);
-	twiddle.im = sin(2.0 * PI * k / (float)N);
+	twiddle.real = (float)cos(2.0 * PI * k / (float)N);
+	twiddle.im = (float)sin(2.0 * PI * k / (float)N);
 
-	int butterflySpan = int(pow(2, uv.x));
+	int butterflySpan = (int)pow(2, uv.x);
 
 	int butterflyWing = 0;
 
@@ -38,17 +38,12 @@ void CreateButterflyTexture(int N, float2 uv) {
 		butterflyWing = 1;
 	}
 
-	float i1 = uv.y * butterflySpan * 2 + k;
-	float i2 = uv.y * butterflySpan * 2 + butterflySpan + k;
-
 	if (uv.x == 0) {
-		if (butterflyWing == 1) {
-			float2 texVal = HTKTexture[float2(BitReverse(uv.x, N), BitReverse(uv.y, N))].rg;
-
-			ButterflyTexture[uv.xy] = float4(twiddle.real, twiddle.im, texVal);
+		if (butterflyWing == 1) {			
+			ButterflyTexture[uv.xy] = float4(twiddle.real, twiddle.im, BitReversed[uv.x], BitReversed[uv.x + 1]);
 		}
 		else {
-			ButterflyTexture[uv.xy] = float4(twiddle.real, twiddle.im, 1, 1);
+			ButterflyTexture[uv.xy] = float4(twiddle.real, twiddle.im, BitReversed[uv.x - 1], BitReversed[uv.x]);
 		}
 	}
 	else {
@@ -158,10 +153,10 @@ void VerticalButterFlies(float2 uv, int stage) {
 void InversionPermutation(float2 uv, int N) {
 	float perms[] = { 1.0, -1.0 };
 
-	int index = (uv.x + uv.y) % 2;
+	int index = (int)((uv.x + uv.y) % 2);
 	float perm = perms[index];
 
-	float NSquared = N * N;
+	float NSquared = pow(N, 2);
 
 	if (pingpong == 0) {
 		float h = Pong0Texture[uv.xy].r;
