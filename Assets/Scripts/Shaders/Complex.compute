@@ -21,6 +21,15 @@ Complex Add(Complex left, Complex right) {
 	return c;
 }
 
+Complex Sub(Complex left, Complex right) {
+	Complex c;
+
+	c.real = (left.real - right.real);
+	c.im = (left.im - right.im);
+
+	return c;
+}
+
 Complex Mul(float c0, Complex c1)
 {
 	Complex c;
@@ -85,7 +94,7 @@ Complex ImaginaryOne() {
 Complex ImaginaryNegativeOne() {
 	Complex imaginaryOne;
 
-	imaginaryOne.real = -0;
+	imaginaryOne.real = 0;
 	imaginaryOne.im = -1;
 
 	return imaginaryOne;

@@ -35,7 +35,7 @@ namespace Assets.FFT {
             var firstPart = h0k * Complex.Exp(firstDispersion * time);
 
             var h0NegKConjugate = new Complex(h0Negk.Real, -h0Negk.Imaginary);
-            var secondDispersion = -Complex.ImaginaryOne * DispercionRelation(k, depth, time);
+            var secondDispersion = new Complex(0, -1) * new Complex(DispercionRelation(k, depth, time), 0);
             var secondPart = h0NegKConjugate * Complex.Exp(secondDispersion * time);
 
             return firstPart + secondPart;

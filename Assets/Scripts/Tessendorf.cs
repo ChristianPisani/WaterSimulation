@@ -69,47 +69,7 @@ namespace Assets.Scripts {
         {
             if (H0KTex == null || H0NegativeKTex == null) return;
 
-            int kernel = FFTComputeShader.FindKernel("GenerateTimeDependentTexture");
-            int displacementKernel = FFTComputeShader.FindKernel("GenerateDisplacementTexture");
-            int butterflyKernel = FFTComputeShader.FindKernel("GenerateButterflyTexture");
-
-            FFTComputeShader.SetTexture(kernel, "H0KTexture", H0KTex);
-            FFTComputeShader.SetTexture(kernel, "HTKTexture", TimedependentHTex);
-            FFTComputeShader.SetTexture(kernel, "H0NegKTexture", H0NegativeKTex);
-            FFTComputeShader.SetTexture(kernel, "ButterflyTexture", ButterflyTexture);
-            FFTComputeShader.SetTexture(kernel, "Pong0Texture", Pong0Texture);
-            FFTComputeShader.SetTexture(kernel, "Pong1Texture", Pong1Texture);
-            FFTComputeShader.SetTexture(kernel, "DisplacementTexture", DisplacementTexture);
-            FFTComputeShader.SetTexture(kernel, "NoiseTexture", NoiseTexture);
-            FFTComputeShader.SetFloat("_Time", Time.time);
-            FFTComputeShader.SetFloat("_Amplitude", Amplitude);
-            FFTComputeShader.SetFloat("_WindForce", WindForce);
-            FFTComputeShader.SetVector("_WindDirection", WindDirection);
-            FFTComputeShader.SetFloat("_Depth", Depth);
-            FFTComputeShader.SetInt("_Resolution", N);
-
-            FFTComputeShader.Dispatch(kernel, N / 8, N / 8, 1);
-
-
-            var bitReversedArray = new int[N];
-            for(int i = 0; i < N; i++)
-            {
-                bitReversedArray[i] = BitReverse(i, N);
-            }
-            BitReversedBuffer = new ComputeBuffer(N, sizeof(int));
-            BitReversedBuffer.SetData(bitReversedArray);
-            FFTComputeShader.SetBuffer(butterflyKernel, "BitReversed", BitReversedBuffer);
-
-            FFTComputeShader.SetTexture(butterflyKernel, "ButterflyTexture", ButterflyTexture);
-            FFTComputeShader.SetTexture(butterflyKernel, "Pong0Texture", Pong0Texture);
-            FFTComputeShader.SetTexture(butterflyKernel, "Pong1Texture", Pong1Texture);
-            FFTComputeShader.Dispatch(butterflyKernel, N / 8, N / 8, 1);
-
-            FFTComputeShader.SetTexture(displacementKernel, "ButterflyTexture", ButterflyTexture);
-            FFTComputeShader.SetTexture(displacementKernel, "Pong0Texture", Pong0Texture);
-            FFTComputeShader.SetTexture(displacementKernel, "Pong1Texture", Pong1Texture);
-            FFTComputeShader.SetTexture(displacementKernel, "DisplacementTexture", DisplacementTexture);
-            FFTComputeShader.Dispatch(displacementKernel, N / 8, N / 8, 1);            
+            VisualizeNoiseGpu();
         }
 
         private void OnDestroy()
@@ -117,26 +77,16 @@ namespace Assets.Scripts {
             BitReversedBuffer.Release();
         }
 
-        public int BitReverse(int i, int N)
+        public void CreateVisialization()
         {
-            int j = i;
-            int Sum = 0;
-            int W = 1;
-            int M = N / 2;
-            while (M != 0)
-            {
-                j = ((i & M) > M - 1) ? 1 : 0;
-                Sum += j * W;
-                W *= 2;
-                M /= 2;
-            }
-            return Sum;
+            CreateTextures();
+            VisualizeNoiseGpu();
+
+            //SaveTexture(ButterflyTexture, "C:/Users/Dobbydoo/Pictures/ButterflyTexture.png");
         }
 
-        public void VisualizeNoiseGpu()
+        public void CreateTextures()
         {
-            if (NoiseTexture == null) return;
-
             H0KTex = new RenderTexture(N, N, 1);
             H0NegativeKTex = new RenderTexture(N, N, 1);
             TimedependentHTex = new RenderTexture(N, N, 1);
@@ -146,7 +96,7 @@ namespace Assets.Scripts {
             DisplacementTexture = new RenderTexture(N, N, 1);
 
             H0KTex.enableRandomWrite = true;
-            H0NegativeKTex.enableRandomWrite = true;            
+            H0NegativeKTex.enableRandomWrite = true;
             TimedependentHTex.enableRandomWrite = true;
             ButterflyTexture.enableRandomWrite = true;
             Pong0Texture.enableRandomWrite = true;
@@ -160,6 +110,11 @@ namespace Assets.Scripts {
             Pong0Texture.Create();
             Pong1Texture.Create();
             DisplacementTexture.Create();
+        }
+
+        public void VisualizeNoiseGpu()
+        {
+            if (NoiseTexture == null) return;
 
             int kernel = FFTComputeShader.FindKernel("Setup");
             int displacementKernel = FFTComputeShader.FindKernel("GenerateDisplacementTexture");
@@ -173,7 +128,7 @@ namespace Assets.Scripts {
             FFTComputeShader.SetTexture(kernel, "Pong1Texture", Pong1Texture);
             FFTComputeShader.SetTexture(kernel, "DisplacementTexture", DisplacementTexture);
             FFTComputeShader.SetTexture(kernel, "NoiseTexture", NoiseTexture);
-            FFTComputeShader.SetFloat("_Time", Time.time);
+            FFTComputeShader.SetFloat("_Time", Time.time + 1);
             FFTComputeShader.SetFloat("_Amplitude", Amplitude);
             FFTComputeShader.SetFloat("_WindForce", WindForce);
             FFTComputeShader.SetVector("_WindDirection", WindDirection);
@@ -183,14 +138,14 @@ namespace Assets.Scripts {
             FFTComputeShader.Dispatch(kernel, N / 8, N / 8, 1);
 
             var bitReversedArray = new int[N];
-            for (int i = 0; i < N; i++)
+            for (int j = 0; j < N; j++)
             {
-                bitReversedArray[i] = BitReverse(i, N);
+                bitReversedArray[j] = NumberDistributions.BitReverse(j, N);
             }
             BitReversedBuffer = new ComputeBuffer(N, sizeof(int));
             BitReversedBuffer.SetData(bitReversedArray);
             FFTComputeShader.SetBuffer(butterflyKernel, "BitReversed", BitReversedBuffer);
-            
+
             FFTComputeShader.SetTexture(butterflyKernel, "ButterflyTexture", ButterflyTexture);
             FFTComputeShader.SetTexture(butterflyKernel, "Pong0Texture", Pong0Texture);
             FFTComputeShader.SetTexture(butterflyKernel, "Pong1Texture", Pong1Texture);
@@ -201,8 +156,8 @@ namespace Assets.Scripts {
             FFTComputeShader.SetTexture(displacementKernel, "Pong1Texture", Pong1Texture);
             FFTComputeShader.SetTexture(displacementKernel, "DisplacementTexture", DisplacementTexture);
             FFTComputeShader.Dispatch(displacementKernel, N / 8, N / 8, 1);
-
-            SaveTexture(ButterflyTexture, "C:/Users/Dobbydoo/Pictures/ButterflyTexture.png");
+            
+            BitReversedBuffer.Release();
         }
 
         public void CreateGaussianNoiseTexture()

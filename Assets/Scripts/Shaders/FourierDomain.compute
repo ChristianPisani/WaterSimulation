@@ -48,7 +48,7 @@ Complex FourierAmplitudeFirst(float A, float2 k, float V, float2 w, float2 rando
 
 	Complex imaginaryOne = ImaginaryOne();
 
-	return Mul((1.0 / sqrt(2.0)), Mul(Add(random.x, Mul(imaginaryOne, random.y)), philips));
+	return Mul((philips / sqrt(2.0)), Add(random.x, Mul(imaginaryOne, random.y)));
 }
 
 float BasicFrequence(float time)
@@ -65,8 +65,13 @@ float BasicFrequence(float time)
 
 float DispercionRelation(float2 k, float depth, float time)
 {
+	float magnitude = length(k);
+	if (magnitude < 0.00001) magnitude = 0.00001;
+
+	//return sqrt(9.81 * magnitude);
+	
 	float basic = BasicFrequence(time);
-	float dispersion = sqrt(9.81 * length(k) * tanh(length(k) * depth));
+	float dispersion = sqrt(9.81 * magnitude * tanh(magnitude * depth));
 
 	float tilingDispersion = ((int)(dispersion / basic)) * basic;
 
@@ -78,13 +83,26 @@ Complex FourierAmplitude(Complex h0k, Complex h0Negk, float A, float2 k, float V
 {
 	Complex imaginaryOne = ImaginaryOne();
 
-	Complex firstDispersion = Mul(imaginaryOne, DispercionRelation(k, depth, time));
-	Complex firstPart = Mul(h0k, Exp(Mul(firstDispersion, time)));
+	float dispersion = DispercionRelation(k, depth, time);
+
+	float cos_w_t = cos(dispersion * time);
+	float sin_w_t = sin(dispersion * time);
+
+	Complex firstDispersion;
+	firstDispersion.real = cos_w_t;
+	firstDispersion.im = sin_w_t;
+	Complex firstPart = Mul(h0k, (firstDispersion));
 	
 	Complex imaginaryNegativeOne = ImaginaryNegativeOne();
 
-	Complex secondDispersion = Mul(imaginaryNegativeOne, DispercionRelation(k, depth, time));
-	Complex secondPart = Mul(h0Negk, Exp(Mul(secondDispersion, time)));
+	Complex h0NegKConjugate;
+	h0NegKConjugate.real = h0Negk.real;
+	h0NegKConjugate.im = -h0Negk.im;
 
-	return Add(firstPart, secondPart);
+	Complex secondDispersion;
+	secondDispersion.real = cos_w_t;
+	secondDispersion.im = -sin_w_t;
+	Complex secondPart = Mul(h0NegKConjugate, (secondDispersion));
+
+	return (secondPart);
 }

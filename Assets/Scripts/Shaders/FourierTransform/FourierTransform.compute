@@ -1,0 +1,304 @@
+﻿#pragma kernel GenerateWaveTexture
+#pragma kernel DFT
+#pragma kernel Vertical
+#pragma kernel FFT
+#pragma kernel HorizontalFFT
+#pragma kernel VerticalFFT
+#pragma kernel ReadFFT
+#pragma kernel BitReverseTextureX
+#pragma kernel BitReverseTextureY
+
+Texture2D<float4> _Input;
+RWTexture2D<float4> _WaveTexture;
+RWTexture2D<float4> _FrequencyTexture;
+RWBuffer<int> _BitReversed;
+
+static const float PI = 3.14159265;
+
+float _Rotation;
+float _Frequency;
+float2 _Strength;
+
+float _Time;
+int _Resolution;
+
+#include "../Complex.compute"
+
+
+[numthreads(8, 8, 1)]
+void GenerateWaveTexture(uint3 id : SV_DispatchThreadID)
+{
+	float2 pos = float2(
+		id.x * sin(_Rotation) - id.y * cos(_Rotation),
+		id.x * cos(_Rotation) + id.y * sin(_Rotation)
+		);
+
+	float f = _Frequency;
+
+	float ramp = sin(_Rotation * PI / 180.0) * id.x - cos(_Rotation * PI / 180.0) * id.y;
+	float ramp2 = cos(90.0 + _Rotation * PI / 180.0) * id.x - sin(90.0 + _Rotation * PI / 180.0) * id.y;
+	float sineSample = sin(2.0 * PI * _Frequency * ramp);
+
+	_WaveTexture[id.xy] = float4(sineSample, sineSample, sineSample, 1);
+}
+
+[numthreads(8, 8, 1)]
+void DFT(uint3 id : SV_DispatchThreadID)
+{
+	int N = _Resolution;
+
+	Complex sum;
+	sum.real = 0;
+	sum.im = 0;
+
+	int k = id.x;
+
+	for (int n = 0; n < N - 1; n++) {
+		Complex amp;
+		amp.real = _Input[float2(n, k)].r;
+		amp.im = 0;
+
+		Complex euler;
+
+		float angle = ((2.0 * PI) / N) * k * n;
+
+		euler.real = cos(angle);
+		euler.im = -sin(angle);
+
+		sum = Add(sum, Mul(amp, euler));
+	}
+
+	_FrequencyTexture[id.xy] = float4(sum.real, sum.im, 0, 1);
+}
+
+[numthreads(8, 8, 1)]
+void Vertical(uint3 id : SV_DispatchThreadID)
+{
+	int N = _Resolution;
+
+	Complex sum;
+	sum.real = _FrequencyTexture[id.xy].r;
+	sum.im = _FrequencyTexture[id.xy].g;
+
+	int k = id.y;
+
+	for (int n = 0; n < N - 1; n++) {
+		Complex amp;
+		amp.real = _FrequencyTexture[float2(k, n)].r;
+		amp.im = _FrequencyTexture[float2(k, n)].g;
+
+		Complex euler;
+
+		float angle = ((2.0 * PI) / N) * k * n;
+
+		euler.real = cos(angle);
+		euler.im = -sin(angle);
+
+		sum = Add(sum, Mul(amp, euler));
+	}
+
+	float a = sqrt(sum.real * sum.real + sum.im * sum.im) / N;
+
+	_FrequencyTexture[id.xy] = float4(sum.real, sum.im, a, 1);
+}
+
+[numthreads(8, 8, 1)]
+void FFT(uint3 id : SV_DispatchThreadID)
+{
+	int N = _Resolution;
+
+	int ldn = log(N);
+	int n = ldn * 2;
+
+	for (int ldm = 1; ldm < n; ldm++) {
+		float m = 2 * ldm;
+		float mh = m / 2;
+
+		for (int r = 0; r <= n - m; r += m) {
+			for (int j = 0; j <= mh - 1; j++) {
+				Complex e;
+
+				int dir = -1;
+				float angle = (dir * 2 * PI  * j) / m;
+
+				e.real = cos(angle);
+				e.im = -sin(angle);
+
+				Complex u;
+				float2 evenIndex = float2(_BitReversed[r + j], 0);
+
+				u.real = _WaveTexture[evenIndex].r;
+				u.im = 0;
+				Complex v;
+				float2 oddIndex = float2(_BitReversed[r + j + mh], 0);
+
+				v.real = _WaveTexture[evenIndex].r;
+				v.im = 0;
+
+				Complex uvAdd = Add(u, v);
+				Complex uvSub = Sub(u, v);
+
+				_FrequencyTexture[evenIndex] = float4(uvAdd.real, uvAdd.im, 0, 1);
+				_FrequencyTexture[oddIndex] = float4(uvSub.real, uvSub.im, 0, 1);
+			}
+		}
+	}
+}
+
+[numthreads(8,8,1)]
+void BitReverseTextureX(uint3 id : SV_DispatchThreadID) {
+	int N = _Resolution;
+
+	float2 freqIndex = float2(_BitReversed[id.x], id.y);
+	float2 curIndex = float2(id.x, id.y);
+
+	float4 c = _Input[curIndex].rgba;
+
+	_FrequencyTexture[curIndex].rgba = _Input[freqIndex].rgba;
+}
+
+[numthreads(8, 8, 1)]
+void BitReverseTextureY(uint3 id : SV_DispatchThreadID) {
+	int N = _Resolution;
+
+	float2 freqIndex = float2(id.x, _BitReversed[id.y]);
+	float2 curIndex = float2(id.x, id.y);
+
+	float4 c = _FrequencyTexture[curIndex].rgba;
+
+	_FrequencyTexture[curIndex].rgba = _FrequencyTexture[freqIndex].rgba;
+}
+
+
+[numthreads(8, 8, 1)]
+void VerticalFFT(uint3 id : SV_DispatchThreadID)
+{
+	float ca = -1.0;
+	float sa = 0.0;
+	int l1 = 1;
+	int l2 = 1;
+
+	int N = _Resolution;
+	int m = log2(N);	
+
+	int k = id.x;
+
+	for (int l = 0; l < m; l++) {
+		l1 = l2;
+		l2 *= 2;
+
+		float u1 = 1.0;
+		float u2 = 0.0;
+
+		for (int j = 0; j < l1; j++) {
+			for (int i = j; i < N; i += l2) {
+				int i1 = i + l1;
+
+				float2 evenIndex = float2(k, i1);
+				float2 freqIndex = float2(k, i);
+
+				float4 c = _FrequencyTexture[evenIndex].rgba;
+				float4 c2 = _FrequencyTexture[freqIndex].rgba;
+
+				float t1 = u1 * c.r - u2 * c.g;
+				float t2 = u1 * c.g + u2 * c.r;
+
+				_FrequencyTexture[evenIndex].rgba = float4(
+					c2.r - t1, 
+					c2.g - t2, 
+					c.b, 
+					c.a); // The UAV stores must write all declared components
+				
+				_FrequencyTexture[freqIndex].rgba = float4(
+					c2.r + t1, 
+					c2.g + t2, 
+					c2.b, 
+					c2.a);
+			}
+
+			float z = u1 * ca - u2 * sa;
+			u2 = u1 * sa + u2 * ca;
+			u1 = z;
+		}
+
+		sa = sqrt((1.0 - ca) / 2.0);
+		sa = -sa;
+		ca = sqrt((1.0 + ca) / 2.0);
+	}
+}
+
+[numthreads(8, 8, 1)]
+void HorizontalFFT(uint3 id : SV_DispatchThreadID)
+{
+	BitReverseTextureX(id);
+
+	float ca = -1.0;
+	float sa = 0.0;
+	int l1 = 1;
+	int l2 = 1;
+
+	int N = _Resolution;
+	int m = log2(N);
+
+	int k = id.y;
+
+	for (int l = 0; l < m; l++) {
+		l1 = l2;
+		l2 *= 2;
+
+		float u1 = 1.0;
+		float u2 = 0.0;
+
+		for (int j = 0; j < l1; j++) {
+			for (int i = j; i < N; i += l2) {
+				int i1 = i + l1;
+
+				float2 evenIndex = float2(i1, k);
+				float2 freqIndex = float2(i, k);
+
+				float4 c = _FrequencyTexture[evenIndex].rgba;
+				float4 c2 = _FrequencyTexture[freqIndex].rgba;
+
+				float t1 = u1 * c.r - u2 * c.g;
+				float t2 = u1 * c.g + u2 * c.r;
+
+				_FrequencyTexture[evenIndex].rgba = float4(
+					c2.r - t1,
+					c2.g - t2,
+					c.b,
+					c.a); // The UAV stores must write all declared components
+
+				_FrequencyTexture[freqIndex].rgba = float4(
+					c2.r + t1,
+					c2.g + t2,
+					c2.b,
+					c2.a);
+			}
+
+			float z = u1 * ca - u2 * sa;
+			u2 = u1 * sa + u2 * ca;
+			u1 = z;
+		}
+
+		sa = sqrt((1.0 - ca) / 2.0);
+		sa = -sa;
+		ca = sqrt((1.0 + ca) / 2.0);
+	}
+
+	BitReverseTextureY(id);
+	VerticalFFT(id);
+}
+
+[numthreads(8, 8, 1)]
+void ReadFFT(uint3 id : SV_DispatchThreadID) {
+	int N = _Resolution;
+
+	float2 amp = _FrequencyTexture[id.xy].rg / (float)N;
+	//amp.r = log(1.0 + amp.r);
+	//amp.g = log(1.0 + amp.g);
+
+	float constant = 255.0;
+	float mag = log(1 + sqrt(amp.r * amp.r + amp.g * amp.g) * constant) / log(1.0 + constant);
+
+	_FrequencyTexture[id.xy] = float4(mag, mag, mag, 1);
+}

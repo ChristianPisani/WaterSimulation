@@ -66,7 +66,7 @@ class TessendorfEditor : Editor {
 
         if (GUILayout.Button("Visalize noise GPU"))
         {
-            ((Tessendorf)target).VisualizeNoiseGpu();
+            ((Tessendorf)target).CreateVisialization();
         }
 
         if (GUILayout.Button("Setup noisetexture"))
