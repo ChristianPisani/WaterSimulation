@@ -10,18 +10,26 @@ namespace Assets.Scripts.Editors {
 
             var fourier = target as FourierTransform;
 
-            DrawTextureField("Input texture", fourier.Input, 200);
-            DrawTextureField("Frequencytexture", fourier.FrequencyTexture, 200);
+            GUILayout.BeginVertical();
+
+
+            DrawTextureField("Input texture", fourier.Input, 512);
+            DrawTextureField("Output texture CPU", fourier.Output, 512);
+            //DrawTextureField("Frequencytexture", fourier.FrequencyTexture, 200);
+            //DrawTextureField("Butterfly Texture", fourier.ButterflyTexture, 200);
 
             if (GUILayout.Button("Run"))
             {
-                fourier.CreateWaveTexture();
+                fourier.Fft2D();
             }
+
+            GUILayout.EndVertical();
         }
 
         private static void DrawTextureField(string name, RenderTexture texture, int width)
         {
-            GUILayout.BeginVertical();
+            if (texture == null) return;
+
             var style = new GUIStyle(GUI.skin.label);
             style.alignment = TextAnchor.UpperCenter;
             
@@ -31,15 +39,14 @@ namespace Assets.Scripts.Editors {
 
             GUILayout.Label(name, style);
             EditorGUILayout.ObjectField(null, typeof(RenderTexture), false, GUILayout.Width(width), GUILayout.Height(width));
-
-            GUI.DrawTexture(GUILayoutUtility.GetLastRect(), texture);
-
-            GUILayout.EndVertical();
+            
+            GUI.DrawTexture(GUILayoutUtility.GetLastRect(), texture);            
         }
 
         private static void DrawTextureField(string name, Texture2D texture, int width)
         {
-            GUILayout.BeginVertical();
+            if (texture == null) return;
+
             var style = new GUIStyle(GUI.skin.label);
             style.alignment = TextAnchor.UpperCenter;
 
@@ -52,7 +59,6 @@ namespace Assets.Scripts.Editors {
 
             GUI.DrawTexture(GUILayoutUtility.GetLastRect(), texture, ScaleMode.ScaleAndCrop);
 
-            GUILayout.EndVertical();
         }
 
         private static Texture2D ToTexture2D(RenderTexture rTex)
