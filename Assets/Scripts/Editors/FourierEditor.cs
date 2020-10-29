@@ -20,7 +20,7 @@ namespace Assets.Scripts.Editors {
 
             if (GUILayout.Button("Run"))
             {
-                fourier.Fft2D();
+                fourier.DoFFT2D();
             }
 
             GUILayout.EndVertical();

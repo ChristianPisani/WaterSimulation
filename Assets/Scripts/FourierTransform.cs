@@ -1,6 +1,7 @@
 ﻿using Assets.FFT;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Complex = System.Numerics.Complex;
 
@@ -8,6 +9,7 @@ namespace Assets.Scripts {
     class FourierTransform : MonoBehaviour {
         public Texture2D Input;
         public Texture2D Output;
+        public Texture2D Inverse;
 
         [Header("Wave properties")]
         public float Rotation;
@@ -140,9 +142,22 @@ namespace Assets.Scripts {
             BitReversedBuffer.Release();
         }
 
-        public void Fft2D()
+        public void DoFFT2D()
         {
             Output = new Texture2D(N, N);
+            Inverse = new Texture2D(N, N);
+
+            var complexList = Texture2DToComplex(Input);
+
+            var forwardFFT = Fft2D(complexList, 1);
+            var inverseFFT = Fft2D(forwardFFT, -1);
+
+            Draw2DFFTPretty(forwardFFT, ref Output);
+            Draw2DFFTPretty(forwardFFT, ref Inverse);
+        }
+
+        public List<List<Complex>> Texture2DToComplex(Texture2D inputTexture)
+        {
             var output = new List<List<Complex>>();
 
             for (int y = 0; y < N; y++)
@@ -151,17 +166,24 @@ namespace Assets.Scripts {
 
                 for (int x = 0; x < N; x++)
                 {
-                    var c = Input.GetPixel(x, y);
+                    var c = inputTexture.GetPixel(x, y);
 
                     var complex = new Complex(c.r, 0);
 
                     row.Add(complex);
                 }
-
-                row = FFT(row);                
-
+                
                 output.Add(row);
             }
+
+            return output;
+        }
+
+        public List<List<Complex>> Fft2D(List<List<Complex>> input, int dir)
+        {
+            Output = new Texture2D(N, N);
+
+            var output = input.Select(c => FFT(c, dir)).ToList();
 
             for (int x = 0; x < N; x++)
             {
@@ -174,7 +196,7 @@ namespace Assets.Scripts {
                     col.Add(complex);
                 }
 
-                col = FFT(col);
+                col = FFT(col, dir);
 
                 for(int y = 0; y < N; y++)
                 {                    
@@ -182,18 +204,23 @@ namespace Assets.Scripts {
                 }                
             }
 
+            return output;
+        }
+
+        public void Draw2DFFTPretty(List<List<Complex>> fft, ref Texture2D outputTexture)
+        {
             for (int x = 0; x < N; x++)
             {
                 for (int y = 0; y < N; y++)
                 {
-                    var complex = output[y][x] / (float)N;
+                    var complex = fft[y][x] / (float)N;
 
                     Vector2 shiftUV = new Vector2(
                         (x + N / 2) % N,
                         (y + N / 2) % N
                     );
 
-                    var complex2 = output[(int)shiftUV.y][(int)shiftUV.x] / (float)N;
+                    var complex2 = fft[(int)shiftUV.y][(int)shiftUV.x] / (float)N;
 
                     var freq = Math.Sqrt(complex2.Real * complex2.Real + complex2.Imaginary * complex2.Imaginary);
 
@@ -202,14 +229,49 @@ namespace Assets.Scripts {
                     //var mag = (float)(Math.Log(1.0f + freq) * constant);
                     var mag = (float)freq;
 
-                    Output.SetPixel(x, y, new Color(mag, mag, mag, 1));
+                    outputTexture.SetPixel(x, y, new Color(mag, mag, mag, 1));
                 }
             }
 
-            Output.Apply();
+            outputTexture.Apply();
         }
 
-        public List<Complex> FFT(List<Complex> X)
+        public List<Complex> FFT(List<Complex> X, int dir)
+        {
+            int n = X.Count;
+
+            List<Complex> bitReversed = new List<Complex>();
+
+            for (int i = 0; i < n; i++)
+            {
+                bitReversed.Add(X[NumberDistributions.BitReverse(i, n)]);
+            }
+
+            for (int s = 1; s <= Mathf.Log(n, 2); s++)
+            {
+                int m = (int)Mathf.Pow(2, s);
+
+                Complex wm = Complex.Exp((Complex.ImaginaryOne * dir * 2.0f * Mathf.PI) / m);
+
+                for (int k = 0; k <= n - 1; k += m)
+                {
+                    Complex w = Complex.One;
+
+                    for (int j = 0; j <= (m / 2) - 1; j++)
+                    {
+                        var t = w * bitReversed[k + j + (m / 2)];
+                        var u = bitReversed[k + j];
+                        bitReversed[k + j] = u + t;
+                        bitReversed[k + j + (m / 2)] = u - t;
+                        w = w * wm;
+                    }
+                }
+            }
+
+            return bitReversed;
+        }
+
+        public List<Complex> Radix2FFT(List<Complex> X)
         {
             int n = X.Count;
 
@@ -227,8 +289,8 @@ namespace Assets.Scripts {
                 odd.Add(X[i + 1]);
             }
 
-            even = FFT(even);
-            odd = FFT(odd);
+            even = Radix2FFT(even);
+            odd = Radix2FFT(odd);
 
             var left = new List<Complex>();
             var right = new List<Complex>();
