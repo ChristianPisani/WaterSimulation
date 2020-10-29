@@ -152,8 +152,8 @@ namespace Assets.Scripts {
             var forwardFFT = Fft2D(complexList, 1);
             var inverseFFT = Fft2D(forwardFFT, -1);
 
-            Draw2DFFTPretty(forwardFFT, ref Output);
-            Draw2DFFTPretty(forwardFFT, ref Inverse);
+            Draw2DFFTPretty(forwardFFT, ref Output, false);
+            Draw2DFFTPretty(inverseFFT, ref Inverse, true);
         }
 
         public List<List<Complex>> Texture2DToComplex(Texture2D inputTexture)
@@ -207,7 +207,7 @@ namespace Assets.Scripts {
             return output;
         }
 
-        public void Draw2DFFTPretty(List<List<Complex>> fft, ref Texture2D outputTexture)
+        public void Draw2DFFTPretty(List<List<Complex>> fft, ref Texture2D outputTexture, bool inverse)
         {
             for (int x = 0; x < N; x++)
             {
@@ -222,13 +222,11 @@ namespace Assets.Scripts {
 
                     var complex2 = fft[(int)shiftUV.y][(int)shiftUV.x] / (float)N;
 
-                    var freq = Math.Sqrt(complex2.Real * complex2.Real + complex2.Imaginary * complex2.Imaginary);
+                    var freq = inverse ? complex.Magnitude : complex2.Magnitude;
 
-                    var constant = 255.0;
-                    //var mag = (float)(Math.Log(1.0 + freq * constant) / Math.Log(constant));
-                    //var mag = (float)(Math.Log(1.0f + freq) * constant);
-                    var mag = (float)freq;
-
+                    var constant = inverse ? 1.0f / N : 1;
+                    var mag = constant * (float)freq;
+                    
                     outputTexture.SetPixel(x, y, new Color(mag, mag, mag, 1));
                 }
             }

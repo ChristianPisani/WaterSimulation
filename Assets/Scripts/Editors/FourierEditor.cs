@@ -15,6 +15,7 @@ namespace Assets.Scripts.Editors {
 
             DrawTextureField("Input texture", fourier.Input, 512);
             DrawTextureField("Output texture CPU", fourier.Output, 512);
+            DrawTextureField("Inverse texture CPU", fourier.Inverse, 512);
             //DrawTextureField("Frequencytexture", fourier.FrequencyTexture, 200);
             //DrawTextureField("Butterfly Texture", fourier.ButterflyTexture, 200);
 
