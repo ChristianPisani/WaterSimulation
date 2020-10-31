@@ -14,14 +14,19 @@ namespace Assets.Scripts.Editors {
 
 
             DrawTextureField("Input texture", fourier.Input, 512);
-            DrawTextureField("Output texture CPU", fourier.Output, 512);
-            DrawTextureField("Inverse texture CPU", fourier.Inverse, 512);
+            DrawTextureField("1st pass texture CPU", fourier.Output, 512);
+            DrawTextureField("2nd pass texture CPU", fourier.Inverse, 512);
             //DrawTextureField("Frequencytexture", fourier.FrequencyTexture, 200);
             //DrawTextureField("Butterfly Texture", fourier.ButterflyTexture, 200);
 
-            if (GUILayout.Button("Run"))
+            if (GUILayout.Button("Forward first"))
             {
-                fourier.DoFFT2D();
+                fourier.DoFFT2D(1);
+            }
+
+            if (GUILayout.Button("Inverse first"))
+            {
+                fourier.DoFFT2D(-1);
             }
 
             GUILayout.EndVertical();
@@ -59,16 +64,6 @@ namespace Assets.Scripts.Editors {
             EditorGUILayout.ObjectField(null, typeof(Texture2D), false, GUILayout.Width(width), GUILayout.Height(width));
 
             GUI.DrawTexture(GUILayoutUtility.GetLastRect(), texture, ScaleMode.ScaleAndCrop);
-
-        }
-
-        private static Texture2D ToTexture2D(RenderTexture rTex)
-        {
-            Texture2D tex = new Texture2D(rTex.width, rTex.height, TextureFormat.RGB24, false);
-            RenderTexture.active = rTex;
-            tex.ReadPixels(new Rect(0, 0, rTex.width, rTex.height), 0, 0);
-            tex.Apply();
-            return tex;
         }
     }
 }

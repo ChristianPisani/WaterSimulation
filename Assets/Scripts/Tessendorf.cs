@@ -3,6 +3,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 using Complex = System.Numerics.Complex;
 using Assets.FFT;
+using Assets.ImageExtensions;
 
 namespace Assets.Scripts {
     class Tessendorf : MonoBehaviour {
@@ -58,6 +59,8 @@ namespace Assets.Scripts {
             H0KTexCPU.Apply();
             H0NegativeKTexCPU.Apply();
             TimedependentHTexCPU.Apply();
+
+            TimedependentHTexCPU.Save("C:/Users/Dobbydoo/Pictures/H0K.png");
         }
 
         public void Start()
@@ -181,20 +184,6 @@ namespace Assets.Scripts {
                 }
             }
             NoiseTexture.Apply();
-        }
-
-        public void SaveTexture(RenderTexture rt, string path)
-        {
-            byte[] bytes = toTexture2D(rt).EncodeToPNG();
-            System.IO.File.WriteAllBytes(path, bytes);
-        }
-        Texture2D toTexture2D(RenderTexture rTex)
-        {
-            Texture2D tex = new Texture2D(rTex.width, rTex.height, TextureFormat.RGB24, false);
-            RenderTexture.active = rTex;
-            tex.ReadPixels(new Rect(0, 0, rTex.width, rTex.height), 0, 0);
-            tex.Apply();
-            return tex;
         }
     }
 }

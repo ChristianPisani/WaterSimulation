@@ -1,4 +1,5 @@
 ﻿using Assets.FFT;
+using Assets.ImageExtensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -136,191 +137,40 @@ namespace Assets.Scripts {
             //FourierCompute.Dispatch(vertical, N, 1, 1);
 
 
-            SaveTexture(FrequencyTexture, "C:/Users/Dobbydoo/Pictures/FrequencySpectrum.png");
+            FrequencyTexture.Save("C:/Users/Dobbydoo/Pictures/FrequencySpectrum.png");
 
 
             BitReversedBuffer.Release();
         }
 
-        public void DoFFT2D()
+        public void DoFFT2D(int dir)
         {
             Output = new Texture2D(N, N);
             Inverse = new Texture2D(N, N);
 
-            var complexList = Texture2DToComplex(Input);
+            var fft = new FFTObject(N, 1);
 
-            var forwardFFT = Fft2D(complexList, 1);
-            var inverseFFT = Fft2D(forwardFFT, -1);
+            var complexList = fft.Texture2DToComplex(Input);
 
-            Draw2DFFTPretty(forwardFFT, ref Output, false);
-            Draw2DFFTPretty(inverseFFT, ref Inverse, true);
-        }
+            var forwardFFT = fft.Analyse2D(complexList);
 
-        public List<List<Complex>> Texture2DToComplex(Texture2D inputTexture)
-        {
-            var output = new List<List<Complex>>();
+            //EdgeDetection(0.25f, ref forwardFFT);
 
-            for (int y = 0; y < N; y++)
-            {
-                var row = new List<Complex>();
+            fft.Draw(forwardFFT, ref Output);
+            //Draw2DFFTReal(forwardFFT, ref Output, dir);
 
-                for (int x = 0; x < N; x++)
-                {
-                    var c = inputTexture.GetPixel(x, y);
+            //complexList = Texture2DToComplex(Output, -dir);
+            //var inverseFFT = Fft2D(complexList, -dir);
 
-                    var complex = new Complex(c.r, 0);
+            fft.Dir = -dir;
+            var inverseFFT = fft.Analyse2D(forwardFFT);
 
-                    row.Add(complex);
-                }
-                
-                output.Add(row);
-            }
+            //Draw2DFFTPretty(forwardFFT, ref Output, dir);
 
-            return output;
-        }
+            fft.Draw(inverseFFT, ref Inverse);
 
-        public List<List<Complex>> Fft2D(List<List<Complex>> input, int dir)
-        {
-            Output = new Texture2D(N, N);
-
-            var output = input.Select(c => FFT(c, dir)).ToList();
-
-            for (int x = 0; x < N; x++)
-            {
-                var col = new List<Complex>();
-
-                for (int y = 0; y < N; y++)
-                {                    
-                    var complex = output[y][x];
-
-                    col.Add(complex);
-                }
-
-                col = FFT(col, dir);
-
-                for(int y = 0; y < N; y++)
-                {                    
-                    output[y][x] = col[y];
-                }                
-            }
-
-            return output;
-        }
-
-        public void Draw2DFFTPretty(List<List<Complex>> fft, ref Texture2D outputTexture, bool inverse)
-        {
-            for (int x = 0; x < N; x++)
-            {
-                for (int y = 0; y < N; y++)
-                {
-                    var complex = fft[y][x] / (float)N;
-
-                    Vector2 shiftUV = new Vector2(
-                        (x + N / 2) % N,
-                        (y + N / 2) % N
-                    );
-
-                    var complex2 = fft[(int)shiftUV.y][(int)shiftUV.x] / (float)N;
-
-                    var freq = inverse ? complex.Magnitude : complex2.Magnitude;
-
-                    var constant = inverse ? 1.0f / N : 1;
-                    var mag = constant * (float)freq;
-                    
-                    outputTexture.SetPixel(x, y, new Color(mag, mag, mag, 1));
-                }
-            }
-
-            outputTexture.Apply();
-        }
-
-        public List<Complex> FFT(List<Complex> X, int dir)
-        {
-            int n = X.Count;
-
-            List<Complex> bitReversed = new List<Complex>();
-
-            for (int i = 0; i < n; i++)
-            {
-                bitReversed.Add(X[NumberDistributions.BitReverse(i, n)]);
-            }
-
-            for (int s = 1; s <= Mathf.Log(n, 2); s++)
-            {
-                int m = (int)Mathf.Pow(2, s);
-
-                Complex wm = Complex.Exp((Complex.ImaginaryOne * dir * 2.0f * Mathf.PI) / m);
-
-                for (int k = 0; k <= n - 1; k += m)
-                {
-                    Complex w = Complex.One;
-
-                    for (int j = 0; j <= (m / 2) - 1; j++)
-                    {
-                        var t = w * bitReversed[k + j + (m / 2)];
-                        var u = bitReversed[k + j];
-                        bitReversed[k + j] = u + t;
-                        bitReversed[k + j + (m / 2)] = u - t;
-                        w = w * wm;
-                    }
-                }
-            }
-
-            return bitReversed;
-        }
-
-        public List<Complex> Radix2FFT(List<Complex> X)
-        {
-            int n = X.Count;
-
-            if (n == 1)
-            {
-                return X;
-            }
-
-            var even = new List<Complex>();
-            var odd = new List<Complex>();
-
-            for (int i = 0; i < n - 1; i += 2)
-            {
-                even.Add(X[i]);
-                odd.Add(X[i + 1]);
-            }
-
-            even = Radix2FFT(even);
-            odd = Radix2FFT(odd);
-
-            var left = new List<Complex>();
-            var right = new List<Complex>();
-
-            for (int i = 0; i < n / 2; i++)
-            {
-                var complex = (Complex.ImaginaryOne * -2.0 * Math.PI * i) / (float)n;
-                //var exp = new Complex(Math.Cos(complex.Real), Math.Sin(complex.Imaginary));
-                var exp = Complex.Exp(complex);
-
-                left.Add(even[i] + exp * odd[i]);
-                right.Add(even[i] - exp * odd[i]);
-            }
-
-            left.AddRange(right);
-
-            return left;
-        }
-
-        public void SaveTexture(RenderTexture rt, string path)
-        {
-            byte[] bytes = toTexture2D(rt).EncodeToPNG();
-            System.IO.File.WriteAllBytes(path, bytes);
-        }
-        Texture2D toTexture2D(RenderTexture rTex)
-        {
-            Texture2D tex = new Texture2D(rTex.width, rTex.height, TextureFormat.RGB24, false);
-            RenderTexture.active = rTex;
-            tex.ReadPixels(new Rect(0, 0, rTex.width, rTex.height), 0, 0);
-            tex.Apply();
-            return tex;
-        }
+            //Output.Save("C:/Users/Dobbydoo/Pictures/FFT.png");
+        }        
 
         public void OnValidate()
         {
