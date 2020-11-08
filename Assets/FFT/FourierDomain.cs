@@ -43,6 +43,8 @@ namespace Assets.FFT {
 
         double DispercionRelation(Vector2 k, double Depth, float time)
         {
+            return Math.Sqrt(G * k.magnitude);
+
             double basic = BasicFrequence(time);
             double dispersion = Math.Sqrt(G * k.magnitude * Math.Tanh(k.magnitude * Depth));
 

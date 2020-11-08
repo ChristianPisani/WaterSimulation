@@ -19,6 +19,9 @@ float PhilipsSpectrum(float A, float2 k, float V, float2 w)
 	// w = wind direction
 	float L = (V * V) / 9.81;
 	float kL = length(k);
+
+	if (kL < 0.00001) kL = 0.00001;
+
 	float kSquared = pow(kL, 2);
 	float LSquared = pow(L, 2);
 
@@ -65,6 +68,13 @@ float BasicFrequence(float time)
 
 float DispercionRelation(float2 k, float depth, float time)
 {
+	float magK = length(k);
+
+	if (magK < 0.00001) magK = 0.00001;
+
+	return sqrt(9.81 * magK);
+
+	/*
 	float magnitude = length(k);
 	if (magnitude < 0.00001) magnitude = 0.00001;
 
@@ -75,34 +85,31 @@ float DispercionRelation(float2 k, float depth, float time)
 
 	float tilingDispersion = ((int)(dispersion / basic)) * basic;
 
-	return tilingDispersion;
+	return tilingDispersion;*/
 }
 
 //h(k, t)
 Complex FourierAmplitude(Complex h0k, Complex h0Negk, float A, float2 k, float V, float2 w, float depth, float time)
-{
-	Complex imaginaryOne = ImaginaryOne();
-
+{	
 	float dispersion = DispercionRelation(k, depth, time);
 
 	float cos_w_t = cos(dispersion * time);
 	float sin_w_t = sin(dispersion * time);
+	float neg_sin_w_t = sin(-dispersion * time);
 
 	Complex firstDispersion;
 	firstDispersion.real = cos_w_t;
 	firstDispersion.im = sin_w_t;
-	Complex firstPart = Mul(h0k, (firstDispersion));
+	Complex firstPart = Mul(h0k, firstDispersion);	
 	
-	Complex imaginaryNegativeOne = ImaginaryNegativeOne();
-
 	Complex h0NegKConjugate;
 	h0NegKConjugate.real = h0Negk.real;
-	h0NegKConjugate.im = h0Negk.im;
+	h0NegKConjugate.im = -h0Negk.im;
 
 	Complex secondDispersion;
 	secondDispersion.real = cos_w_t;
-	secondDispersion.im = -sin_w_t;
-	Complex secondPart = Mul(h0NegKConjugate, (secondDispersion));
+	secondDispersion.im = neg_sin_w_t;
+	Complex secondPart = Mul(h0NegKConjugate, secondDispersion);
 
-	return (secondPart);
+	return Add(firstPart, secondPart);
 }

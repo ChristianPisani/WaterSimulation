@@ -75,9 +75,8 @@ Complex Exp(Complex value) /* The complex number raised to e */
 {
 	Complex c;
 
-	float expReal = exp(value.real);
-	c.real = expReal * cos(value.im);
-	c.im = expReal * sin(value.im);
+	c.real = cos(value.im);
+	c.im = sin(value.im);
 
 	return c;
 };

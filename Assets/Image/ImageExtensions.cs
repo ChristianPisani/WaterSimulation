@@ -63,7 +63,7 @@ namespace Assets.ImageExtensions {
         {
             var texture = new RenderTexture((int)size.x, (int)size.y, 1);
             texture.enableRandomWrite = true;
-            texture.format = RenderTextureFormat.ARGBFloat;
+            texture.format = RenderTextureFormat.DefaultHDR;
             texture.Create();
 
             return texture;

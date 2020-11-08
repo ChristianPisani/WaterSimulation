@@ -203,7 +203,7 @@ void HorizontalButterflyPass(uint3 id : SV_DispatchThreadID) {
 	{
 		int m = pow(2, s);
 
-		float exp = (2.0 * PI) / m;
+		float exp = (-2.0 * PI) / m;
 
 		Complex wm;
 		wm.real = cos(exp);
@@ -247,7 +247,7 @@ void VerticalButterflyPass(uint3 id : SV_DispatchThreadID) {
 	{
 		int m = pow(2, s);
 
-		float exp = (2.0 * PI) / m;
+		float exp = (-2.0 * PI) / m;
 
 		Complex wm;
 		wm.real = cos(exp);

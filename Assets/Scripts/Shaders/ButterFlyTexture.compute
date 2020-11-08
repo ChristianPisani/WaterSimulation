@@ -160,13 +160,13 @@ void InversionPermutation(float2 uv, int N) {
 
 	if (pingpong == 0) {
 		float h = Pong0Texture[uv.xy].r;
-		float hVal = perm * (h / NSquared);
+		float hVal = perm * (h / (float)NSquared);
 
 		DisplacementTexture[uv.xy] = float4(hVal, hVal, hVal, 1);
 	}
 	else {
 		float h = Pong1Texture[uv.xy].r;
-		float hVal = perm * (h / NSquared);
+		float hVal = perm * (h / (float)NSquared);
 
 		DisplacementTexture[uv.xy] = float4(hVal, hVal, hVal, 1);
 	}

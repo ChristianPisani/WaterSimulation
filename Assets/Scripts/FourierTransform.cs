@@ -36,6 +36,15 @@ namespace Assets.Scripts {
         public bool ShiftFirstPass;
         public bool ShiftSecondPass;
 
+        public bool TransformInverse;
+
+        public Tessendorf tessendorf;
+
+        public void Start()
+        {
+            tessendorf = GetComponent<Tessendorf>();
+        }
+
         public void CreateWaveTexture()
         {
             /* WaveTexture = InitializeRenderTexture(new Vector2(N, N));
@@ -55,10 +64,10 @@ namespace Assets.Scripts {
 
         public void CreateButterflyTexture()
         {
-            int butterflyKernel = FourierCompute.FindKernel("Butterfly");
+            //int butterflyKernel = FourierCompute.FindKernel("Butterfly");
             int horizontal = FourierCompute.FindKernel("HorizontalButterflyPass");
             int vertical = FourierCompute.FindKernel("VerticalButterflyPass");
-            int initalize = FourierCompute.FindKernel("InitializeFrequencyTexture");
+            int initalize = FourierCompute.FindKernel("InitializeTexture");
             int bitReverseX = FourierCompute.FindKernel("BitReverseTextureX");
             int bitReverseY = FourierCompute.FindKernel("BitReverseTextureY");
 
@@ -75,40 +84,58 @@ namespace Assets.Scripts {
             WaveTexture = WaveTexture.Initialize(new Vector2(N, N));
             ButterflyTexture = ButterflyTexture.Initialize(new Vector2(logN, N));
 
-            FourierCompute.SetTexture(initalize, "_Input", Input);
+            int dir = TransformInverse ? -1 : 1;
 
-            FourierCompute.SetTexture(initalize, "_InitialTexture", WaveTexture);
-            FourierCompute.SetTexture(bitReverseX, "_InitialTexture", WaveTexture);
-            FourierCompute.SetTexture(bitReverseY, "_InitialTexture", Pong0Texture);
+            FourierCompute.SetInt("N", N);
+            FourierCompute.SetInt("_Dir", dir);
 
-            FourierCompute.SetTexture(initalize, "_FrequencyTexture", Pong0Texture);
-            FourierCompute.SetTexture(bitReverseX, "_FrequencyTexture", Pong0Texture);
-            FourierCompute.SetTexture(bitReverseY, "_FrequencyTexture", Pong1Texture);
-            FourierCompute.SetTexture(readFft, "_FrequencyTexture", Pong1Texture);
-            FourierCompute.SetTexture(shift, "_FrequencyTexture", Pong1Texture);
+            FourierCompute.SetTexture(initalize, "_InputTexture", Input);
+            FourierCompute.SetTexture(initalize, "_Pong0Texture", Pong0Texture);
+            
+            FourierCompute.SetTexture(bitReverseX, "_Pong0Texture", Pong0Texture);
+            FourierCompute.SetTexture(bitReverseX, "_Pong1Texture", Pong1Texture);
+            FourierCompute.SetBuffer(bitReverseX, "_BitReversed", BitReversedBuffer);
 
-            FourierCompute.SetInt("_Resolution", N);
+            FourierCompute.SetTexture(bitReverseY, "_Pong0Texture", Pong0Texture);
+            FourierCompute.SetTexture(bitReverseY, "_Pong1Texture", Pong1Texture);
+            FourierCompute.SetBuffer(bitReverseY, "_BitReversed", BitReversedBuffer);
 
-            FourierCompute.SetTexture(butterflyKernel, "ButterflyTexture", ButterflyTexture);
-            FourierCompute.SetTexture(horizontal, "ButterflyTexture", ButterflyTexture);
+            FourierCompute.SetTexture(shift, "_Pong0Texture", Pong0Texture);
+            FourierCompute.SetTexture(readFft, "_Pong0Texture", Pong0Texture);
 
-            FourierCompute.SetBuffer(butterflyKernel, "BitReversed", BitReversedBuffer);
-            FourierCompute.SetBuffer(bitReverseX, "BitReversed", BitReversedBuffer);
-            FourierCompute.SetBuffer(bitReverseY, "BitReversed", BitReversedBuffer);
+            FourierCompute.SetTexture(horizontal, "_Pong0Texture", Pong0Texture);
+            FourierCompute.SetTexture(horizontal, "_Pong1Texture", Pong1Texture);
 
-            FourierCompute.SetTexture(horizontal, "Pong0Texture", Pong0Texture);
-            FourierCompute.SetTexture(vertical, "Pong0Texture", Pong1Texture);
-            FourierCompute.SetTexture(horizontal, "Pong1Texture", Pong1Texture);
-
-            FourierCompute.Dispatch(butterflyKernel, logN / 8, N, 1);
+            FourierCompute.SetTexture(vertical, "_Pong0Texture", Pong0Texture);
+            FourierCompute.SetTexture(vertical, "_Pong1Texture", Pong1Texture);
+            
             FourierCompute.Dispatch(initalize, N / 8, N / 8, 1);
             FourierCompute.Dispatch(bitReverseX, N, 1, 1);
-            FourierCompute.Dispatch(horizontal, N / 8, 1, 1);
-            FourierCompute.Dispatch(bitReverseY, N, 1, 1);
-            FourierCompute.Dispatch(vertical, N / 8, 1, 1);
+            FourierCompute.Dispatch(horizontal, N, 1, 1);
 
-            FourierCompute.Dispatch(shift, N / 2, N, 1);
-            FourierCompute.Dispatch(readFft, N / 8, N / 8, 1);
+
+            FourierCompute.Dispatch(bitReverseY, N, 1, 1);
+            //FourierCompute.Dispatch(shift, N / 2, N, 1);
+            FourierCompute.Dispatch(vertical, N, 1, 1);
+
+
+            FourierCompute.SetInt("_Dir", -dir);
+
+            FourierCompute.Dispatch(bitReverseX, N, 1, 1);
+            FourierCompute.Dispatch(horizontal, N, 1, 1);
+            FourierCompute.Dispatch(bitReverseY, N, 1, 1);
+            FourierCompute.Dispatch(vertical, N, 1, 1);
+
+            //Pong0Texture.Save("C:/Users/Dobbydoo/Pictures/Pong0.png");
+
+            if (ShiftFirstPass)
+            {
+                FourierCompute.Dispatch(shift, N / 2, N, 1);
+            }
+            if (DrawReal)
+            {
+                FourierCompute.Dispatch(readFft, N / 8, N / 8, 1);
+            }
         }
 
         public void CreateFrequencyTexture()
@@ -234,12 +261,15 @@ namespace Assets.Scripts {
 
         public void OnValidate()
         {
+            if (N != Input.width) N = Input.width;
+
             if (N <= 0) N = 64;
             if (N % 2 != 0) N = 256;
             if (N > 1024) N = 1024;
 
-            CreateWaveTexture();
-            CreateFrequencyTexture();
+
+            //CreateWaveTexture();
+            //CreateFrequencyTexture();
         }
     }
 }

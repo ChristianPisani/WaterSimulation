@@ -36,9 +36,9 @@ namespace Assets.Scripts {
 
         public void VisualizeNoiseCpu()
         {
-            H0KTexCPU = new Texture2D(N, N);
-            H0NegativeKTexCPU = new Texture2D(N, N);
-            TimedependentHTexCPU = new Texture2D(N, N);
+            H0KTexCPU = new Texture2D(N, N, TextureFormat.RGBAFloat, true);
+            H0NegativeKTexCPU = new Texture2D(N, N, TextureFormat.RGBAFloat, true);
+            TimedependentHTexCPU = new Texture2D(N, N, TextureFormat.RGBAFloat, true);
 
             for (int x = 0; x < N; x++)
             {
@@ -90,29 +90,13 @@ namespace Assets.Scripts {
 
         public void CreateTextures()
         {
-            H0KTex = new RenderTexture(N, N, 1);
-            H0NegativeKTex = new RenderTexture(N, N, 1);
-            TimedependentHTex = new RenderTexture(N, N, 1);
-            ButterflyTexture = new RenderTexture((int)Math.Log(N, 2), N, 1);
-            Pong0Texture = new RenderTexture(N, N, 1);
-            Pong1Texture = new RenderTexture(N, N, 1);
-            DisplacementTexture = new RenderTexture(N, N, 1);
-
-            H0KTex.enableRandomWrite = true;
-            H0NegativeKTex.enableRandomWrite = true;
-            TimedependentHTex.enableRandomWrite = true;
-            ButterflyTexture.enableRandomWrite = true;
-            Pong0Texture.enableRandomWrite = true;
-            Pong1Texture.enableRandomWrite = true;
-            DisplacementTexture.enableRandomWrite = true;
-
-            H0KTex.Create();
-            H0NegativeKTex.Create();
-            TimedependentHTex.Create();
-            ButterflyTexture.Create();
-            Pong0Texture.Create();
-            Pong1Texture.Create();
-            DisplacementTexture.Create();
+            H0KTex = H0KTex.Initialize(new Vector2(N, N));
+            H0NegativeKTex = H0NegativeKTex.Initialize(new Vector2(N, N));
+            TimedependentHTex = TimedependentHTex.Initialize(new Vector2(N, N));
+            ButterflyTexture = ButterflyTexture.Initialize(new Vector2(Mathf.Log(N, 2), N));
+            Pong0Texture = Pong0Texture.Initialize(new Vector2(N, N));
+            Pong1Texture = Pong1Texture.Initialize(new Vector2(N, N));
+            DisplacementTexture = DisplacementTexture.Initialize(new Vector2(N, N));           
         }
 
         public void VisualizeNoiseGpu()
