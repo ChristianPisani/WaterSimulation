@@ -9,9 +9,13 @@
 #pragma kernel BitReverseTextureY
 #pragma kernel InitializeFrequencyTexture
 #pragma kernel ShiftTexture
+#pragma kernel Butterfly
+#pragma kernel HorizontalButterflyPass
+#pragma kernel VerticalButterflyPass
 
 Texture2D<float4> _Input;
 RWTexture2D<float4> _WaveTexture;
+RWTexture2D<float4> _InitialTexture;
 RWTexture2D<float4> _FrequencyTexture;
 RWBuffer<int> BitReversed;
 
@@ -75,7 +79,7 @@ void DFT(uint3 id : SV_DispatchThreadID)
 		sum = Add(sum, Mul(amp, euler));
 	}
 
-	_FrequencyTexture[id.xy] = float4(sum.real, sum.im, 0, 1);
+	_FrequencyTexture[id.xy].rgba = float4(sum.real, sum.im, 0, 1);
 }
 
 [numthreads(8, 8, 1)]
@@ -153,40 +157,274 @@ void FFT(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(8, 8, 1)]
+void Butterfly(uint3 id : SV_DispatchThreadID) {
+	int N = log2(_Resolution);
+
+	int stage = id.x + 1;
+	int butterflySpan = (int)pow(2, stage);
+
+	float k = id.y * (float)((float)N / pow(2, stage));
+
+	Complex twiddle;
+	twiddle.real = cos(2.0 * PI * k / (float)N);
+	twiddle.im = -sin(2.0 * PI * k / (float)N);
+
+	int butterflyWing = 0;
+
+	if (id.y % butterflySpan < (butterflySpan / 2)) {
+		butterflyWing = 1;
+	}
+
+	if (stage == 1) {
+		if (butterflyWing == 1) {
+			ButterflyTexture[id.xy] = float4(twiddle.real, twiddle.im, BitReversed[id.y], BitReversed[id.y + (butterflySpan / 2)]);
+		}
+		else {
+			ButterflyTexture[id.xy] = float4(twiddle.real, twiddle.im, BitReversed[id.y], BitReversed[id.y - (butterflySpan / 2)]);
+		}
+	}
+	else {
+		if (butterflyWing = 1) {
+			ButterflyTexture[id.xy] = float4(twiddle.real, twiddle.im, id.y, id.y + (butterflySpan / 2));
+		}
+		else {
+			ButterflyTexture[id.xy] = float4(twiddle.real, twiddle.im, id.y, id.y - (butterflySpan / 2));
+		}
+	}
+}
+
+[numthreads(8, 1, 1)]
+void HorizontalButterflyPass(uint3 id : SV_DispatchThreadID) {
+	int N = _Resolution;
+
+	int log2N = log2(N);
+	
+	for (int s = 1; s <= log2N; s++)
+	{
+		int m = pow(2, s);
+
+		float exp = (2.0 * PI) / m;
+
+		Complex wm;
+		wm.real = cos(exp);
+		wm.im = -sin(exp);
+
+		for (int k = 0; k <= N - 1; k += m)
+		{
+			Complex w;
+			w.real = 1;
+			w.im = 0;
+
+			for (int j = 0; j <= (m / 2) - 1; j++)
+			{
+				Complex something;
+				something.real = Pong0Texture[float2(k + j + (m / 2), id.x)].r;
+				something.im = Pong0Texture[float2(k + j + (m / 2), id.x)].g;
+
+				Complex t = Mul(w, something);
+				Complex u;
+				u.real = Pong0Texture[float2(k + j, id.x)].r;
+				u.im = Pong0Texture[float2(k + j, id.x)].g;
+
+				Complex added = Add(u, t);
+				Complex subbed = Sub(u, t);
+
+				Pong0Texture[float2(k + j, id.x)].rgba = float4(added.real, added.im, 0, 1);
+				Pong0Texture[float2(k + j + (m / 2), id.x)].rgba = float4(subbed.real, subbed.im, 0, 1);
+				w = Mul(w, wm);
+			}
+		}
+	}
+}
+
+[numthreads(8, 1, 1)]
+void VerticalButterflyPass(uint3 id : SV_DispatchThreadID) {
+	int N = _Resolution;
+
+	int log2N = log2(N);
+	
+	for (int s = 1; s <= log2N; s++)
+	{
+		int m = pow(2, s);
+
+		float exp = (2.0 * PI) / m;
+
+		Complex wm;
+		wm.real = cos(exp);
+		wm.im = -sin(exp);
+
+		for (int k = 0; k <= N - 1; k += m)
+		{
+			Complex w;
+			w.real = 1;
+			w.im = 0;
+
+			for (int j = 0; j <= (m / 2) - 1; j++)
+			{
+				Complex something;
+				something.real = Pong0Texture[float2(id.x, k + j + (m / 2))].r;
+				something.im = Pong0Texture[float2(id.x, k + j + (m / 2))].g;
+
+				Complex t = Mul(w, something);
+				Complex u;
+				u.real = Pong0Texture[float2(id.x, k + j)].r;
+				u.im = Pong0Texture[float2(id.x, k + j)].g;
+
+				Complex added = Add(u, t);
+				Complex subbed = Sub(u, t);
+
+				Pong0Texture[float2(id.x, k + j)].rgba = float4(added.real, added.im, 0, 1);
+				Pong0Texture[float2(id.x, k + j + (m / 2))].rgba = float4(subbed.real, subbed.im, 0, 1);
+				w = Mul(w, wm);
+			}
+		}
+	}
+}
+
+[numthreads(1, 1, 1)]
+void ButterflyFFT(uint3 id : SV_DispatchThreadID) {
+	// Does not work in current state
+
+	// For each row in image 0..N (id.x) (naturally would be id.y, but only create threads per row)
+	// For each value in row 0...N (int i)
+	// Prepare complex sum value
+	// Perform butterfly operation 0..log2(N) (summation of twiddle indices)
+	// // Fetch top index and bottom index values - Tex[i, id.x].ba
+	// // If top
+	// // // sum += top + bottom
+	// // If bottom
+	// // // Twiddle = bottom.rg
+	// // // sum += top - (bottom * twiddle)
+	// // Tex[i, id.x] = sum
+
+	int N = _Resolution;
+
+	int log2N = log2(N);
+	int pingpong = 0;
+
+	for (int n = 0; n < 2; n++) {
+		int stage = n + 1;
+		int butterflySpan = (int)pow(2, stage);
+
+		for (int i = 0; i < N; i++) {
+			int butterflyWing = 0;
+
+			if (i % butterflySpan < (butterflySpan / 2)) {
+				butterflyWing = 1;
+			}
+
+			Complex sum;
+			sum.real = 0;
+			sum.im = 0;
+
+			Complex top;
+			Complex bottom;
+
+			float2 butterflyIndex = float2(n, i);
+			float4 butterfly = ButterflyTexture[butterflyIndex].rgba;
+
+			// b and a are indices for pixel values to compare
+			int topIndex = (int)(butterfly.b);
+			int bottomIndex = (int)(butterfly.a);
+
+			if (pingpong % 2 == 0) {
+				top.real = Pong0Texture[float2(topIndex, id.x)].r;
+				top.im = Pong0Texture[float2(topIndex, id.x)].g;
+
+				bottom.real = Pong0Texture[float2(bottomIndex, id.x)].r;
+				bottom.im = Pong0Texture[float2(bottomIndex, id.x)].g;
+			}
+			else {
+				top.real = Pong0Texture[float2(topIndex, id.x)].r;
+				top.im = Pong0Texture[float2(topIndex, id.x)].g;
+
+				bottom.real = Pong1Texture[float2(bottomIndex, id.x)].r;
+				bottom.im = Pong1Texture[float2(bottomIndex, id.x)].g;
+			}
+
+			if (butterflyWing == 0) {
+				float2 butterflyTopIndex = float2(n, topIndex);
+				float4 butterflyTop = ButterflyTexture[butterflyTopIndex].rgba;
+
+				Complex twiddle;
+				twiddle.real = butterflyTop.r;
+				twiddle.im = butterflyTop.g;
+
+				Complex mul = Mul(twiddle, bottom);
+
+				Complex add = Add(top, mul);
+				sum = Add(sum, add);
+			}
+			else {
+				float2 butterflyBottomIndex = float2(n, bottomIndex);
+				float4 butterflyBottom = ButterflyTexture[butterflyBottomIndex].rgba;
+
+				Complex twiddle;
+				twiddle.real = butterflyBottom.r;
+				twiddle.im = butterflyBottom.g;
+
+				Complex mul = Mul(twiddle, bottom);
+
+
+				Complex sub = Sub(top, mul);
+				sum = Add(sum, sub);
+			}
+
+			if (pingpong % 2 == 0) {
+				Pong1Texture[float2(i, id.x)].rgba = float4(sum.real, sum.im, 0, 1);
+			}
+			else {
+				Pong0Texture[float2(i, id.x)].rgba = float4(sum.real, sum.im, 0, 1);
+			}
+
+		}
+
+		pingpong++;
+	}
+}
+
+[numthreads(8, 8, 1)]
 void InitializeFrequencyTexture(uint3 id : SV_DispatchThreadID) {
 	float4 c = _Input[id.xy];
 	c.g = 0;
-	
+
+	_InitialTexture[id.xy] = c;
 	_FrequencyTexture[id.xy] = c;
-}
-
-[numthreads(1,1,1)]
-void BitReverseTextureX(uint3 id : SV_DispatchThreadID) {
-	int N = _Resolution;
-
-	for (int i = 0; i < N / 2; i++) {
-		float2 freqIndex = float2(id.x, BitReversed[i]);
-		float2 curIndex = float2(id.x, i);
-		
-		float4 c = _FrequencyTexture[curIndex];
-
-		_FrequencyTexture[curIndex].rgba = _FrequencyTexture[freqIndex].rgba;
-		_FrequencyTexture[freqIndex].rgba = c;
-	}
 }
 
 [numthreads(1, 1, 1)]
 void BitReverseTextureY(uint3 id : SV_DispatchThreadID) {
 	int N = _Resolution;
 
-	for (int i = 0; i < N / 2; i++) {
-		float2 freqIndex = float2(BitReversed[i], id.x);
-		float2 curIndex = float2(i, id.x);
-		
-		float4 c = _FrequencyTexture[curIndex];
+	for (int i = 0; i < N; i++) {
+		float2 curIndex = float2(id.x, i);
+		float2 freqIndex = float2(id.x, BitReversed[i]);
 
-		_FrequencyTexture[curIndex].rgba = _FrequencyTexture[freqIndex].rgba;
-		_FrequencyTexture[freqIndex].rgba = c;
+		float4 c = _InitialTexture[freqIndex].rgba;
+
+		_FrequencyTexture[curIndex].rgba = c;
+	}
+
+	for (int i = 0; i < N; i++) {
+		//_InitialTexture[float2(id.x, i)].rgba = _FrequencyTexture[float2(id.x, i)];
+	}
+}
+
+[numthreads(1, 1, 1)]
+void BitReverseTextureX(uint3 id : SV_DispatchThreadID) {
+	int N = _Resolution;
+
+	for (int i = 0; i < N; i++) {
+		float2 curIndex = float2(i, id.x);
+		float2 freqIndex = float2(BitReversed[i], id.x);
+
+		float4 c = _InitialTexture[freqIndex].rgba;
+
+		_FrequencyTexture[curIndex].rgba = c;
+	}
+
+	for (int i = 0; i < N; i++) {
+		//_InitialTexture[float2(i, id.x)].rgba = _FrequencyTexture[float2(i, id.x)];
 	}
 }
 
@@ -194,114 +432,112 @@ void BitReverseTextureY(uint3 id : SV_DispatchThreadID) {
 [numthreads(1, 1, 1)]
 void VerticalFFT(uint3 id : SV_DispatchThreadID)
 {
-	float ca = -1.0;
-	float sa = 0.0;
-	int l1 = 1;
-	int l2 = 1;
+	int n = _Resolution;
+	int Dir = 1;
 
-	int N = _Resolution;
-	int m = log2(N);	
+	for (int s = 1; s <= log2(n); s++)
+	{
+		int n = _Resolution;
+		int Dir = 1;
 
-	int k = id.x;
+		for (int s = 1; s <= log2(n); s++)
+		{
+			int m = pow(2, s);
 
-	for (int l = 0; l < m; l++) {
-		l1 = l2;
-		l2 *= 2;
+			Complex wm;
+			wm.real = 0;
+			wm.im = (-Dir * 2.0 * PI) / (float)m;
 
-		float u1 = 1.0;
-		float u2 = 0.0;
+			wm.real = cos(wm.real);
+			wm.im = sin(wm.im);
 
-		for (int j = 0; j < l1; j++) {
-			for (int i = j; i < N; i += l2) {
-				int i1 = i + l1;
+			for (int k = 0; k <= n - 1; k += m)
+			{
+				Complex w;
+				w.real = 1;
+				w.im = 0;
 
-				float2 evenIndex = float2(k, i1);
-				float2 freqIndex = float2(k, i);
+				for (int j = 0; j <= (m / 2) - 1; j++)
+				{
+					int evenIndex = k + j + (m / 2);
+					int oddIndex = k + j;
 
-				float4 c = _FrequencyTexture[evenIndex].rgba;
-				float4 c2 = _FrequencyTexture[freqIndex].rgba;
+					Complex c1;
+					c1.real = _FrequencyTexture[float2(id.x, evenIndex)].r * 2.0 - 1.0;
+					c1.im = _FrequencyTexture[float2(id.x, evenIndex)].g * 2.0 - 1.0;
 
-				float t1 = u1 * c.r - u2 * c.g;
-				float t2 = u1 * c.g + u2 * c.r;
+					Complex u;
+					u.real = _FrequencyTexture[float2(id.x, oddIndex)].r * 2.0 - 1.0;
+					u.im = _FrequencyTexture[float2(id.x, oddIndex)].g * 2.0 - 1.0;
 
-				_FrequencyTexture[evenIndex].rgba = float4(
-					c2.r - t1, 
-					c2.g - t2, 
-					c.b, 
-					c.a); // The UAV stores must write all declared components
-				
-				_FrequencyTexture[freqIndex].rgba = float4(
-					c2.r + t1, 
-					c2.g + t2, 
-					c2.b, 
-					c2.a);
+					Complex t = Mul(w, c1);
+
+					Complex added = Add(u, t);
+					Complex subbed = Sub(u, t);
+
+					_FrequencyTexture[float2(id.x, oddIndex)].rgba = float4((added.real + 1.0) / 2.0, (added.im + 1.0) / 2.0, 0, 1);
+					_FrequencyTexture[float2(id.x, evenIndex)].rgba = float4((subbed.real + 1.0) / 2.0, (subbed.im + 1.0) / 2.0, 0, 1);
+					w = Mul(w, wm);
+				}
 			}
-
-			float z = u1 * ca - u2 * sa;
-			u2 = u1 * sa + u2 * ca;
-			u1 = z;
 		}
+	}
 
-		sa = sqrt((1.0 - ca) / 2.0);
-		sa = -sa;
-		ca = sqrt((1.0 + ca) / 2.0);
+	for (int i = 0; i < n; i++) {
+		_InitialTexture[float2(id.x, i)].rgba = _FrequencyTexture[float2(id.x, i)];
 	}
 }
 
 [numthreads(1, 1, 1)]
 void HorizontalFFT(uint3 id : SV_DispatchThreadID)
-{		
-	float ca = -1.0;
-	float sa = 0.0;
-	int l1 = 1;
-	int l2 = 1;
+{
+	int n = _Resolution;
+	int Dir = 1;
 
-	int N = _Resolution;
-	int m = log2(N);
+	for (int s = 1; s <= log2(n); s++)
+	{
+		int m = pow(2, s);
 
-	int k = id.x;
+		Complex wm;
+		wm.real = 0;
+		wm.im = (-Dir * 2.0 * PI) / (float)m;
 
-	for (int l = 0; l < m; l++) {
-		l1 = l2;
-		l2 *= 2;
+		wm.real = cos(wm.real);
+		wm.im = sin(wm.im);
 
-		float u1 = 1.0;
-		float u2 = 0.0;
+		for (int k = 0; k <= n - 1; k += m)
+		{
+			Complex w;
+			w.real = 1;
+			w.im = 0;
 
-		for (int j = 0; j < l1; j++) {
-			for (int i = j; i < N; i += l2) {
-				int i1 = i + l1;
+			for (int j = 0; j <= (m / 2) - 1; j++)
+			{
+				int evenIndex = k + j + (m / 2);
+				int oddIndex = k + j;
 
-				float2 evenIndex = float2(i1, k);
-				float2 freqIndex = float2(i, k);
+				Complex c1;
+				c1.real = _FrequencyTexture[float2(evenIndex, id.x)].r * 2.0 - 1.0;
+				c1.im = _FrequencyTexture[float2(evenIndex, id.x)].g * 2.0 - 1.0;
 
-				float4 c = _FrequencyTexture[evenIndex].rgba;
-				float4 c2 = _FrequencyTexture[freqIndex].rgba;
+				Complex u;
+				u.real = _FrequencyTexture[float2(oddIndex, id.x)].r * 2.0 - 1.0;
+				u.im = _FrequencyTexture[float2(oddIndex, id.x)].g * 2.0 - 1.0;
 
-				float t1 = u1 * c.r - u2 * c.g;
-				float t2 = u1 * c.g + u2 * c.r;
+				Complex t = Mul(w, c1);
 
-				_FrequencyTexture[evenIndex].rgba = float4(
-					c2.r - t1,
-					c2.g - t2,
-					c.b,
-					c.a); // The UAV stores must write all declared components
+				Complex added = Add(u, t);
+				Complex subbed = Sub(u, t);
 
-				_FrequencyTexture[freqIndex].rgba = float4(
-					c2.r + t1,
-					c2.g + t2,
-					c2.b,
-					c2.a);
+				_FrequencyTexture[float2(oddIndex, id.x)].rgba = float4((added.real + 1.0) / 2.0, (added.im + 1.0) / 2.0, 0, 1);
+				_FrequencyTexture[float2(evenIndex, id.x)].rgba = float4((subbed.real + 1.0) / 2.0, (subbed.im + 1.0) / 2.0, 0, 1);
+				w = Mul(w, wm);
 			}
-
-			float z = u1 * ca - u2 * sa;
-			u2 = u1 * sa + u2 * ca;
-			u1 = z;
 		}
+	}
 
-		sa = sqrt((1.0 - ca) / 2.0);
-		sa = -sa;
-		ca = sqrt((1.0 + ca) / 2.0);
+	for (int i = 0; i < n; i++) {
+		_InitialTexture[float2(i, id.x)].rgba = _FrequencyTexture[float2(i, id.x)];
 	}
 }
 
@@ -309,14 +545,14 @@ void HorizontalFFT(uint3 id : SV_DispatchThreadID)
 void ReadFFT(uint3 id : SV_DispatchThreadID) {
 	int N = _Resolution;
 
-	float2 amp = _FrequencyTexture[id.xy].rg / N;
+	float2 amp = _FrequencyTexture[id.xy].rg / (float)N;
 	//amp.r = log(1.0 + amp.r);
 	//amp.g = log(1.0 + amp.g);
 
-	float constant = N *10;
-	float mag = log(1.0 + sqrt(amp.r * amp.r + amp.g * amp.g) * constant) / log(1.0 + constant);
+	float constant = N * 10;
+	//float mag = log(1.0 + sqrt(amp.r * amp.r + amp.g * amp.g) * constant) / log(1.0 + constant);
 	//float mag = log(1 + sqrt(amp.r * amp.r + amp.g * amp.g));
-	//float mag = sqrt(amp.r * amp.r + amp.g * amp.g);
+	float mag = sqrt(amp.r * amp.r + amp.g * amp.g);
 
 	_FrequencyTexture[id.xy] = float4(mag, mag, mag, 1);
 }
@@ -328,7 +564,7 @@ void ShiftTexture(uint3 id : SV_DispatchThreadID) {
 	float2 shiftUV = float2(
 		(id.x + N / 2) % N,
 		(id.y + N / 2) % N
-	);
+		);
 
 	float4 c = _FrequencyTexture[id.xy].rgba;
 	float4 c2 = _FrequencyTexture[shiftUV].rgba;

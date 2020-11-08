@@ -43,32 +43,31 @@ namespace Assets.FFT {
 
                 for (int y = 0; y < N; y++)
                 {
-                    output[y][x] = col[y];
+                    //output[y][x] = col[y];
                 }
             }
 
             return output;
         }
 
-        public void Draw(List<List<Complex>> fft, ref Texture2D outputTexture)
+        public void Draw(List<List<Complex>> fft, ref Texture2D outputTexture, float strength, bool shift)
         {
             for (int x = 0; x < N; x++)
             {
                 for (int y = 0; y < N; y++)
                 {
-                    var complex = fft[y][x] * Mathf.Log(N);
+                    var complex = fft[y][x];
 
                     Vector2 shiftUV = new Vector2(
                         (x + N / 2) % N,
                         (y + N / 2) % N
                     );
 
-                    var complex2 = fft[(int)shiftUV.y][(int)shiftUV.x];
+                    var shifted = fft[(int)shiftUV.y][(int)shiftUV.x];
 
-                    var freq = Dir == -1 ? complex.Magnitude : complex2.Magnitude;
+                    var freq = shift ? shifted.Magnitude : complex.Magnitude;
 
-                    var constant = Dir == -1 ? 1.0f : 1;
-                    var mag = (float)(freq);
+                    var mag = (float)(freq * strength);
 
                     outputTexture.SetPixel(x, y, new Color(mag, mag, mag, 1));
                 }
@@ -77,15 +76,22 @@ namespace Assets.FFT {
             outputTexture.Apply();
         }
 
-        public void DrawReal(List<List<Complex>> fft, ref Texture2D outputTexture)
+        public void DrawReal(List<List<Complex>> fft, ref Texture2D outputTexture, float strength, bool shift)
         {
             for (int x = 0; x < N; x++)
             {
                 for (int y = 0; y < N; y++)
                 {
-                    var complex = fft[y][x] / N;
+                    Vector2 shiftUV = new Vector2(
+                        (x + N / 2) % N,
+                        (y + N / 2) % N
+                    );
 
-                    outputTexture.SetPixel(x, y, new Color((float)(Math.Abs(complex.Real + 32f) / (64f)), (float)(Math.Abs(complex.Imaginary + 32f) / (64f)), 0, 1));
+                    var coord = shift ? shiftUV : new Vector2(x, y);
+
+                    var complex = fft[(int)coord.y][(int)coord.x] * strength;
+
+                    outputTexture.SetPixel(x, y, new Color((float)complex.Real, (float)complex.Imaginary, 0, 1));
                 }
             }
 
@@ -101,6 +107,7 @@ namespace Assets.FFT {
             for (int i = 0; i < n; i++)
             {
                 bitReversed.Add(X[NumberDistributions.BitReverse(i, n)]);
+                //bitReversed.Add(X[i]);
             }
 
             for (int s = 1; s <= Mathf.Log(n, 2); s++)
@@ -126,7 +133,7 @@ namespace Assets.FFT {
 
             for (int i = 0; i < bitReversed.Count; i++)
             {
-                bitReversed[i] /= (float)N;
+                // bitReversed[i] /= (float)N;
             }
 
             return bitReversed;
@@ -183,7 +190,7 @@ namespace Assets.FFT {
                 {
                     var c = inputTexture.GetPixel(x, y);
 
-                    var complex = new Complex(Dir == -1 ? c.r : c.r, Dir == -1 ? c.g : 0);
+                    var complex = new Complex(Dir == -1 ? c.r : c.r, Dir == -1 ? c.g : c.g);
 
                     row.Add(complex);
                 }

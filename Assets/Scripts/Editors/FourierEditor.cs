@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using Assets.ImageExtensions;
+using UnityEditor;
 using UnityEngine;
 
 namespace Assets.Scripts.Editors {
@@ -13,11 +14,14 @@ namespace Assets.Scripts.Editors {
             GUILayout.BeginVertical();
 
 
-            DrawTextureField("Input texture", fourier.Input, 512);
-            DrawTextureField("1st pass texture CPU", fourier.Output, 512);
-            DrawTextureField("2nd pass texture CPU", fourier.Inverse, 512);
-            //DrawTextureField("Frequencytexture", fourier.FrequencyTexture, 200);
-            //DrawTextureField("Butterfly Texture", fourier.ButterflyTexture, 200);
+            fourier.Input.DrawTextureField("Input texture", 200);
+            fourier.Output.DrawTextureField("1st pass texture CPU", 200);
+            //DrawTextureField("2nd pass texture CPU", fourier.Inverse, 200);
+            fourier.FrequencyTexture.DrawTextureField("Frequencytexture", 200);
+            fourier.WaveTexture.DrawTextureField("WaveTexture", 200);
+            fourier.ButterflyTexture.DrawTextureField("Butterfly Texture", 200);
+            fourier.Pong0Texture.DrawTextureField("Ping pong 0", 200);
+            fourier.Pong1Texture.DrawTextureField("Ping pong 1", 200);
 
             if (GUILayout.Button("Forward first"))
             {
@@ -29,41 +33,12 @@ namespace Assets.Scripts.Editors {
                 fourier.DoFFT2D(-1);
             }
 
+            if (GUILayout.Button("Butterfly"))
+            {
+                fourier.CreateButterflyTexture();
+            }
+
             GUILayout.EndVertical();
-        }
-
-        private static void DrawTextureField(string name, RenderTexture texture, int width)
-        {
-            if (texture == null) return;
-
-            var style = new GUIStyle(GUI.skin.label);
-            style.alignment = TextAnchor.UpperCenter;
-            
-            style.fixedWidth = width;
-
-            texture.filterMode = FilterMode.Point;
-
-            GUILayout.Label(name, style);
-            EditorGUILayout.ObjectField(null, typeof(RenderTexture), false, GUILayout.Width(width), GUILayout.Height(width));
-            
-            GUI.DrawTexture(GUILayoutUtility.GetLastRect(), texture);            
-        }
-
-        private static void DrawTextureField(string name, Texture2D texture, int width)
-        {
-            if (texture == null) return;
-
-            var style = new GUIStyle(GUI.skin.label);
-            style.alignment = TextAnchor.UpperCenter;
-
-            style.fixedWidth = width;
-
-            texture.filterMode = FilterMode.Point;
-
-            GUILayout.Label(name, style);
-            EditorGUILayout.ObjectField(null, typeof(Texture2D), false, GUILayout.Width(width), GUILayout.Height(width));
-
-            GUI.DrawTexture(GUILayoutUtility.GetLastRect(), texture, ScaleMode.ScaleAndCrop);
-        }
+        }       
     }
 }

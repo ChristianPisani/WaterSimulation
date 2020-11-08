@@ -40,10 +40,10 @@ void CreateButterflyTexture(int N, float2 uv) {
 
 	if (uv.x == 0) {
 		if (butterflyWing == 1) {			
-			ButterflyTexture[uv.xy] = float4(twiddle.real, twiddle.im, BitReversed[uv.x], BitReversed[uv.x + 1]);
+			ButterflyTexture[uv.xy] = float4(twiddle.real, twiddle.im, BitReversed[uv.y], BitReversed[uv.y + 1]);
 		}
 		else {
-			ButterflyTexture[uv.xy] = float4(twiddle.real, twiddle.im, BitReversed[uv.x - 1], BitReversed[uv.x]);
+			ButterflyTexture[uv.xy] = float4(twiddle.real, twiddle.im, BitReversed[uv.y - 1], BitReversed[uv.y]);
 		}
 	}
 	else {

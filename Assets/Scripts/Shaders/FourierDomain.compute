@@ -97,7 +97,7 @@ Complex FourierAmplitude(Complex h0k, Complex h0Negk, float A, float2 k, float V
 
 	Complex h0NegKConjugate;
 	h0NegKConjugate.real = h0Negk.real;
-	h0NegKConjugate.im = -h0Negk.im;
+	h0NegKConjugate.im = h0Negk.im;
 
 	Complex secondDispersion;
 	secondDispersion.real = cos_w_t;

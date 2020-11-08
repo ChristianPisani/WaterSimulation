@@ -28,5 +28,16 @@ namespace Assets.FFT {
             }
             return Sum;
         }
+
+        public static int[] GetBitReversedArrayOfSize(int N)
+        {
+            var bitReversedArray = new int[N];
+            for (int j = 0; j < N; j++)
+            {
+                bitReversedArray[j] = NumberDistributions.BitReverse(j, N);
+            }
+
+            return bitReversedArray;
+        }
     }
 }

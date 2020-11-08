@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 
 namespace Assets.ImageExtensions {
     public static class ImageExtensions {
@@ -21,6 +22,51 @@ namespace Assets.ImageExtensions {
             tex.ReadPixels(new Rect(0, 0, rTex.width, rTex.height), 0, 0);
             tex.Apply();
             return tex;
+        }
+
+        public static void DrawTextureField(this RenderTexture texture, string name, int width)
+        {
+            if (texture == null) return;
+
+            var style = new GUIStyle(GUI.skin.label);
+            style.alignment = TextAnchor.UpperCenter;
+
+            style.fixedWidth = width;
+
+            texture.filterMode = FilterMode.Point;
+
+            GUILayout.Label(name, style);
+            EditorGUILayout.ObjectField(null, typeof(RenderTexture), false, GUILayout.Width(width), GUILayout.Height(width));
+
+            GUI.DrawTexture(GUILayoutUtility.GetLastRect(), texture);
+        }
+
+        public static void DrawTextureField(this Texture2D texture, string name, int width)
+        {
+            if (texture == null) return;
+
+            var style = new GUIStyle(GUI.skin.label);
+            style.alignment = TextAnchor.UpperCenter;
+
+            style.fixedWidth = width;
+
+            texture.filterMode = FilterMode.Point;
+
+            GUILayout.Label(name, style);
+            EditorGUILayout.ObjectField(null, typeof(Texture2D), false, GUILayout.Width(width), GUILayout.Height(width));
+
+            GUI.DrawTexture(GUILayoutUtility.GetLastRect(), texture, ScaleMode.ScaleAndCrop);
+        }
+
+
+        public static RenderTexture Initialize(this RenderTexture tex, Vector2 size)
+        {
+            var texture = new RenderTexture((int)size.x, (int)size.y, 1);
+            texture.enableRandomWrite = true;
+            texture.format = RenderTextureFormat.ARGBFloat;
+            texture.Create();
+
+            return texture;
         }
     }
 }

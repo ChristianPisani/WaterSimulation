@@ -1,4 +1,5 @@
-﻿using Assets.Scripts;
+﻿using Assets.ImageExtensions;
+using Assets.Scripts;
 using UnityEditor;
 using UnityEngine;
 
@@ -24,40 +25,32 @@ class TessendorfEditor : Editor {
     {
         DrawDefaultInspector();
 
+        var t = (Tessendorf)target;
+
+        int texSize = 250;
+
         GUILayout.Label("CPU Textures");
-        Texture2D t = AssetPreview.GetAssetPreview(((Tessendorf)target).H0KTexCPU);
-        GUILayout.Label(t);
-        Texture2D t1 = AssetPreview.GetAssetPreview(((Tessendorf)target).H0NegativeKTexCPU);
-        GUILayout.Label(t1);
-        Texture2D t2 = AssetPreview.GetAssetPreview(((Tessendorf)target).TimedependentHTexCPU);
-        GUILayout.Label(t2);
-
+        Texture2D tex = AssetPreview.GetAssetPreview((t).H0KTexCPU);
+        t.H0KTexCPU.DrawTextureField("h0k", texSize);
+        t.H0NegativeKTexCPU.DrawTextureField("h0(-k)", texSize);
+        t.TimedependentHTexCPU.DrawTextureField("h0k t", texSize);
+        
         GUILayout.Label("GPU Textures");
-        Texture2D tex = AssetPreview.GetAssetPreview(((Tessendorf)target).H0KTex);
-        GUILayout.Label(tex);
-        Texture2D tex1 = AssetPreview.GetAssetPreview(((Tessendorf)target).H0NegativeKTex);
-        GUILayout.Label(tex1);
-        Texture2D tex2 = AssetPreview.GetAssetPreview(((Tessendorf)target).TimedependentHTex);
-        GUILayout.Label(tex2);
-
+        t.H0KTex.DrawTextureField("h0k", texSize);
+        t.H0NegativeKTex.DrawTextureField("h0(-k)", texSize);
+        t.TimedependentHTex.DrawTextureField("h0 kt", texSize);
+        
         GUILayout.Label("Butterfly texture (GPU)");
-        Texture2D butterfly = AssetPreview.GetAssetPreview(((Tessendorf)target).ButterflyTexture);
-        GUILayout.Label(butterfly);
-
+        t.ButterflyTexture.DrawTextureField("Butterfly", texSize);
+        
         GUILayout.Label("Ping pong textures (GPU)");
-        Texture2D pong0 = AssetPreview.GetAssetPreview(((Tessendorf)target).Pong0Texture);
-        GUILayout.Label(pong0);
-        Texture2D pong1 = AssetPreview.GetAssetPreview(((Tessendorf)target).Pong1Texture);
-        GUILayout.Label(pong1);
-
+        t.Pong0Texture.DrawTextureField("Ping pong 0", texSize);
+        t.Pong1Texture.DrawTextureField("Ping pon 1", texSize);
+        
         GUILayout.Label("Displacement texture (GPU)");
-        Texture2D displacement = AssetPreview.GetAssetPreview(((Tessendorf)target).DisplacementTexture);
-        GUILayout.Label(displacement);
+        t.DisplacementTexture.DrawTextureField("Displacement texture", texSize);        
 
-
-        GUILayout.Label("Gaussian noise texture");
-        Texture2D noiseTex = AssetPreview.GetAssetPreview(((Tessendorf)target).NoiseTexture);
-        GUILayout.Label(noiseTex);
+        t.NoiseTexture.DrawTextureField("Gaussian noise texture", texSize);        
 
         if (GUILayout.Button("Visalize noise CPU"))
         {
