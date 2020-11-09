@@ -1,0 +1,64 @@
+﻿#pragma kernel Setup
+#pragma kernel GenerateTimeDependentTexture
+
+RWTexture2D<float4> H0KTexture;
+RWTexture2D<float4> H0NegKTexture;
+RWTexture2D<float4> HTKTexture;
+
+#include "../Complex.compute"
+#include "../FourierDomain.compute"
+
+Texture2D<float4> NoiseTexture;
+
+float _Time;
+float _Amplitude;
+float _WindForce;
+float2 _WindDirection;
+float _Depth;
+int _Resolution;
+
+[numthreads(8, 8, 1)]
+void Setup(uint3 id : SV_DispatchThreadID)
+{
+	float t = _Time;
+
+	float2 k = GetWaveDirection(id.x, id.y, _Resolution);
+
+	float4 random = NoiseTexture[id.xy].rgba;
+
+	Complex h0k = FourierAmplitudeFirst(_Amplitude, k, _WindForce, _WindDirection, random.rg);
+	Complex h0NegK = FourierAmplitudeFirst(_Amplitude, -k, _WindForce, _WindDirection, random.ba);
+
+	H0KTexture[id.xy] = float4(h0k.real, h0k.im, 0, 1);
+	H0NegKTexture[id.xy] = float4(h0NegK.real, h0NegK.im, 0, 1);
+
+	Complex htk = FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t);
+
+	HTKTexture[id.xy] = float4(htk.real, htk.im, 0, 1);
+	//Pong0Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
+	//Pong1Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
+}
+
+[numthreads(8, 8, 1)]
+void GenerateTimeDependentTexture(uint3 id : SV_DispatchThreadID)
+{
+	float t = _Time;
+
+	float2 k = GetWaveDirection(id.x, id.y, _Resolution);
+
+	float4 random = NoiseTexture[id.xy].rgba;
+
+	Complex h0k;
+	h0k.real = H0KTexture[id.xy].r;
+	h0k.im = H0KTexture[id.xy].g;
+
+	Complex h0NegK;
+	h0NegK.real = H0NegKTexture[id.xy].r;
+	h0NegK.im = H0NegKTexture[id.xy].g;
+
+	Complex htk = FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t);
+
+	HTKTexture[id.xy] = float4(htk.real, htk.im, 0, 1);
+	//Pong0Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
+	//Pong1Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
+}

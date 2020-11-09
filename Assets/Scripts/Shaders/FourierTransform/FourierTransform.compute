@@ -1,4 +1,9 @@
-﻿#pragma kernel GenerateWaveTexture
+﻿/*
+This is a mess I will totally clean up sometime
+*/
+
+
+#pragma kernel GenerateWaveTexture
 #pragma kernel DFT
 #pragma kernel Vertical
 #pragma kernel FFT

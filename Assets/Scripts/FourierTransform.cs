@@ -89,8 +89,9 @@ namespace Assets.Scripts {
             FourierCompute.SetInt("N", N);
             FourierCompute.SetInt("_Dir", dir);
 
-            FourierCompute.SetTexture(initalize, "_InputTexture", Input);
+            FourierCompute.SetTexture(initalize, "_InputTexture", tessendorf.TimedependentHTex);
             FourierCompute.SetTexture(initalize, "_Pong0Texture", Pong0Texture);
+            FourierCompute.SetTexture(initalize, "_Pong1Texture", Pong1Texture);
             
             FourierCompute.SetTexture(bitReverseX, "_Pong0Texture", Pong0Texture);
             FourierCompute.SetTexture(bitReverseX, "_Pong1Texture", Pong1Texture);
@@ -110,21 +111,22 @@ namespace Assets.Scripts {
             FourierCompute.SetTexture(vertical, "_Pong1Texture", Pong1Texture);
             
             FourierCompute.Dispatch(initalize, N / 8, N / 8, 1);
+
             FourierCompute.Dispatch(bitReverseX, N, 1, 1);
             FourierCompute.Dispatch(horizontal, N, 1, 1);
-
-
             FourierCompute.Dispatch(bitReverseY, N, 1, 1);
-            //FourierCompute.Dispatch(shift, N / 2, N, 1);
             FourierCompute.Dispatch(vertical, N, 1, 1);
+
+
+            //FourierCompute.Dispatch(shift, N / 2, N, 1);
 
 
             FourierCompute.SetInt("_Dir", -dir);
 
-            FourierCompute.Dispatch(bitReverseX, N, 1, 1);
+            /*FourierCompute.Dispatch(bitReverseX, N, 1, 1);
             FourierCompute.Dispatch(horizontal, N, 1, 1);
             FourierCompute.Dispatch(bitReverseY, N, 1, 1);
-            FourierCompute.Dispatch(vertical, N, 1, 1);
+            FourierCompute.Dispatch(vertical, N, 1, 1);*/
 
             //Pong0Texture.Save("C:/Users/Dobbydoo/Pictures/Pong0.png");
 
@@ -231,6 +233,12 @@ namespace Assets.Scripts {
             BitReversedBuffer.Release();
         }
 
+        public void Update()
+        {
+            tessendorf.VisualizeNoiseGpu();
+            CreateButterflyTexture();
+        }
+
         public void DoFFT2D(int dir)
         {
             Output = new Texture2D(N, N);
@@ -261,7 +269,7 @@ namespace Assets.Scripts {
 
         public void OnValidate()
         {
-            if (N != Input.width) N = Input.width;
+            //if (N != Input.width) N = Input.width;
 
             if (N <= 0) N = 64;
             if (N % 2 != 0) N = 256;

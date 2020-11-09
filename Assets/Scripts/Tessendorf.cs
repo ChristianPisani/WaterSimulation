@@ -72,7 +72,7 @@ namespace Assets.Scripts {
         {
             if (H0KTex == null || H0NegativeKTex == null) return;
 
-            VisualizeNoiseGpu();
+            //VisualizeNoiseGpu();
         }
 
         private void OnDestroy()
