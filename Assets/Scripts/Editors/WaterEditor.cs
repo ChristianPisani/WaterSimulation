@@ -13,14 +13,15 @@ class WaterEditor : Editor {
 
         int texSize = 250;
         
-        GUILayout.Label("GPU Textures");
         t.H0KTex.DrawTextureField("h0k", texSize);
         t.H0NegativeKTex.DrawTextureField("h0(-k)", texSize);
-        t.TimedependentHTex.DrawTextureField("hkt", texSize);        
-        
-        GUILayout.Label("Displacement texture (GPU)");
-        t.DisplacementTexture.DrawTextureField("Displacement texture", texSize);        
-                
+        t.TimedependentHTex.DrawTextureField("hkt", texSize);
+
+        if (t.FFT != null && t.FFT.Pong0Texture != null)
+        {
+            t.FFT.Pong0Texture.DrawTextureField("Displacement texture", texSize);
+        }    
+
         if (GUILayout.Button("Initialize"))
         {
             ((WaterBehaviour)target).Start();

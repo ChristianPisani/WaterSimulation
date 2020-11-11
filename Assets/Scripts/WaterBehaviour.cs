@@ -9,8 +9,10 @@ namespace Assets.Scripts {
         public float WindForce = 40;
         public float Depth = 10;
         public int N = 256;
+        public Material WaterMaterial;
 
         public ComputeShader WaterShader;
+        public ComputeShader FFTShader;
 
         internal RenderTexture H0KTex;
         internal RenderTexture H0NegativeKTex;
@@ -20,7 +22,8 @@ namespace Assets.Scripts {
 
         private int setupKernel;
         private int timeDependentTextureKernel;
-        private int displacementKernel;
+        
+        internal FFTGpu FFT;
 
         public void Start()
         {
@@ -32,30 +35,46 @@ namespace Assets.Scripts {
             CreateGaussianNoiseTexture();
             CreateTextures();
             SetShaderVariables();
-            CreateWaterHeightField();
+            GenerateFrequencyDomain();
 
             if (InValidState()) return;
 
             WaterShader.Dispatch(setupKernel, N / 8, N / 8, 1);
+
+            FFT = new FFTGpu(TimedependentHTex, FFTShader);
+            FFT.SetDirection(-1);
+            FFT.DrawReal = true;
+
+            GenerateWaterHeightField();
+
+            WaterMaterial.SetTexture("_HeightMap", FFT.Pong0Texture);
         }
 
         public void Update()
         {
             if (InValidState()) return;
 
-            CreateWaterHeightField();
+            WaterShader.SetFloat("_Time", Time.time + 1000);
+
+            GenerateFrequencyDomain();
+            GenerateWaterHeightField();
         }
 
-        public void CreateWaterHeightField()
+        public void GenerateFrequencyDomain()
         {
             if (InValidState()) return;
 
             WaterShader.Dispatch(timeDependentTextureKernel, N / 8, N / 8, 1);
         }
 
+        public void GenerateWaterHeightField()
+        {
+            FFT.AnalyseImage();
+        }
+
         private bool InValidState()
         {
-            return H0KTex == null || H0NegativeKTex == null || WaterShader == null || NoiseTexture == null;
+            return H0KTex == null || H0NegativeKTex == null || WaterShader == null || NoiseTexture == null || FFTShader == null;
         }
 
         private void CreateTextures()
@@ -69,13 +88,12 @@ namespace Assets.Scripts {
         private void FindKernels()
         {
             setupKernel = WaterShader.FindKernel("Setup");
-            displacementKernel = WaterShader.FindKernel("GenerateTimeDependentTexture");
             timeDependentTextureKernel = WaterShader.FindKernel("GenerateTimeDependentTexture");
         }
 
         private void SetShaderVariables()
         {
-            WaterShader.SetFloat("_Time", Time.time);
+            WaterShader.SetFloat("_Time", Time.time + 1000);
             WaterShader.SetFloat("_Amplitude", Amplitude);
             WaterShader.SetFloat("_WindForce", WindForce);
             WaterShader.SetVector("_WindDirection", WindDirection);
@@ -85,16 +103,12 @@ namespace Assets.Scripts {
             WaterShader.SetTexture(setupKernel, "H0KTexture", H0KTex);
             WaterShader.SetTexture(setupKernel, "HTKTexture", TimedependentHTex);
             WaterShader.SetTexture(setupKernel, "H0NegKTexture", H0NegativeKTex);
-            WaterShader.SetTexture(setupKernel, "DisplacementTexture", DisplacementTexture);
             WaterShader.SetTexture(setupKernel, "NoiseTexture", NoiseTexture);
 
             WaterShader.SetTexture(timeDependentTextureKernel, "H0KTexture", H0KTex);
             WaterShader.SetTexture(timeDependentTextureKernel, "HTKTexture", TimedependentHTex);
             WaterShader.SetTexture(timeDependentTextureKernel, "H0NegKTexture", H0NegativeKTex);
-            WaterShader.SetTexture(timeDependentTextureKernel, "DisplacementTexture", DisplacementTexture);
             WaterShader.SetTexture(timeDependentTextureKernel, "NoiseTexture", NoiseTexture);
-
-            WaterShader.SetTexture(displacementKernel, "DisplacementTexture", DisplacementTexture);
         }
 
         public void CreateGaussianNoiseTexture()
@@ -118,6 +132,14 @@ namespace Assets.Scripts {
                 }
             }
             NoiseTexture.Apply();
+        }
+
+        public void OnValidate()
+        {
+            if(N == 64)
+            {
+                N = 64;
+            }
         }
     }
 }

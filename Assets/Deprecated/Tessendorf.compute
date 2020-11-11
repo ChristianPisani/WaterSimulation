@@ -1,0 +1,100 @@
+﻿/*
+#pragma kernel Setup
+#pragma kernel GenerateTimeDependentTexture
+#pragma kernel GenerateDisplacementTexture
+#pragma kernel GenerateButterflyTexture
+
+RWTexture2D<float4> H0KTexture;
+RWTexture2D<float4> H0NegKTexture;
+RWTexture2D<float4> HTKTexture;
+RWTexture2D<float4> ButterflyTexture;
+RWTexture2D<float4> Pong0Texture;
+RWTexture2D<float4> Pong1Texture;
+RWTexture2D<float4> DisplacementTexture;
+RWBuffer<int> BitReversed;
+
+#include "Complex.compute"
+#include "FourierDomain.compute"
+#include "ButterflyTexture.compute"
+
+Texture2D<float4> NoiseTexture;
+
+float _Time;
+float _Amplitude;  
+float _WindForce; 
+float2 _WindDirection; 
+float _Depth; 
+int _Resolution;
+
+[numthreads(8,8,1)]
+void Setup (uint3 id : SV_DispatchThreadID)
+{   
+	float t = _Time;			
+	
+	float2 k = GetWaveDirection(id.x, id.y, _Resolution);
+
+	float4 random = NoiseTexture[id.xy].rgba;
+
+	Complex h0k = FourierAmplitudeFirst(_Amplitude, k, _WindForce, _WindDirection, random.rg);
+	Complex h0NegK = FourierAmplitudeFirst(_Amplitude, -k, _WindForce, _WindDirection, random.ba);
+
+	H0KTexture[id.xy] = float4(h0k.real, h0k.im, 0, 1);
+	H0NegKTexture[id.xy] = float4(h0NegK.real, h0NegK.im, 0, 1);
+
+	Complex htk = FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t);
+
+	HTKTexture[id.xy] = float4(htk.real, htk.im, 0, 1);
+	Pong0Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
+	Pong1Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
+}
+
+[numthreads(8, 8, 1)]
+void GenerateButterflyTexture(uint3 id : SV_DispatchThreadID)
+{
+	CreateButterflyTexture(_Resolution, id.xy);
+}
+
+[numthreads(8,8,1)]
+void GenerateDisplacementTexture(uint3 id : SV_DispatchThreadID)
+{	
+	pingpong = 0;
+	for (int i = 0; i < log2(_Resolution); i++) {
+		HorizontalButterFlies(id.xy, i);
+
+		pingpong++;
+		pingpong %= 2;
+	}
+
+	for (int j = 0; j < log2(_Resolution); j++) {
+		VerticalButterFlies(id.xy, j);
+
+		pingpong++;
+		pingpong %= 2;
+	}
+
+	InversionPermutation(id.xy, _Resolution);
+}
+
+[numthreads(8, 8, 1)]
+void GenerateTimeDependentTexture (uint3 id : SV_DispatchThreadID)
+{
+	float t = _Time;
+
+	float2 k = GetWaveDirection(id.x, id.y, _Resolution);
+
+	float4 random = NoiseTexture[id.xy].rgba;
+
+	Complex h0k;
+	h0k.real = H0KTexture[id.xy].r;
+	h0k.im = H0KTexture[id.xy].g;
+
+	Complex h0NegK;
+	h0NegK.real = H0NegKTexture[id.xy].r;
+	h0NegK.im = H0NegKTexture[id.xy].g;
+
+	Complex htk = FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t);
+
+	HTKTexture[id.xy] = float4(h0NegK.real, h0NegK.im, 0, 1);
+	Pong0Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
+	Pong1Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
+}*/

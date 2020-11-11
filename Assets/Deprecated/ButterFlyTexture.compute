@@ -1,0 +1,173 @@
+﻿// SIZE N * log2 (N)
+// Log2 (N) FFT stages
+/*
+uint pingpong = 0;
+
+uint BitReverse(uint i, uint N)
+{
+	uint j = i;
+	uint Sum = 0;
+	uint W = 1;
+	uint M = N / 2;
+	while (M != 0)
+	{
+		j = ((i & M) > M - 1) ? 1 : 0;
+		Sum += j * W;
+		W *= 2;
+		M /= 2;
+	}
+	return Sum;
+}
+
+void CreateButterflyTexture(int N, float2 uv) {
+	float uvPow = pow(2, uv.x + 1);
+	
+	float k = (uv.y * ((float)N / uvPow)) % N;
+
+	float PI = 3.14159265; // For some reasons gettings errors if i try to define PI globally
+
+	Complex twiddle;
+	twiddle.real = (float)cos(2.0 * PI * k / (float)N);
+	twiddle.im = (float)sin(2.0 * PI * k / (float)N);
+
+	int butterflySpan = (int)pow(2, uv.x);
+
+	int butterflyWing = 0;
+
+	if (uv.y % uvPow < pow(2, uv.x)) {
+		butterflyWing = 1;
+	}
+
+	if (uv.x == 0) {
+		if (butterflyWing == 1) {			
+			ButterflyTexture[uv.xy] = float4(twiddle.real, twiddle.im, BitReversed[uv.y], BitReversed[uv.y + 1]);
+		}
+		else {
+			ButterflyTexture[uv.xy] = float4(twiddle.real, twiddle.im, BitReversed[uv.y - 1], BitReversed[uv.y]);
+		}
+	}
+	else {
+		if (butterflyWing == 1) {
+			ButterflyTexture[uv.xy] = float4(twiddle.real, twiddle.im, uv.y, uv.y + butterflySpan);
+		}
+		else {
+			ButterflyTexture[uv.xy] = float4(twiddle.real, twiddle.im, uv.y - butterflySpan, uv.y);
+		}
+	}
+}
+
+void HorizontalButterFlies(float2 uv, int stage) {
+	Complex H;
+	
+	if (pingpong == 0) {
+		float4 data = ButterflyTexture[float2(stage, uv.x)].rgba;
+		float2 p_ = Pong0Texture[float2(data.z, uv.y)].rg;
+		float2 q_ = Pong0Texture[float2(data.w, uv.y)].rg;
+		float2 w_ = float2(data.xy);
+
+		Complex p;
+		Complex q;
+		Complex w;
+
+		p.real = p_.x;
+		p.im = p_.y;
+		q.real = q_.x;
+		q.im = q_.y;
+		w.real = w_.x;
+		w.im = w_.y;
+
+		H = Add(p, Mul(w, q));
+
+		Pong1Texture[uv.xy] = float4(H.real, H.im, 0, 1);
+	}
+	else {
+		float4 data = ButterflyTexture[float2(stage, uv.x)].rgba;
+		float2 p_ = Pong1Texture[float2(data.z, uv.y)].rg;
+		float2 q_ = Pong1Texture[float2(data.w, uv.y)].rg;
+		float2 w_ = float2(data.xy);
+
+		Complex p;
+		Complex q;
+		Complex w;
+
+		p.real = p_.x;
+		p.im = p_.y;
+		q.real = q_.x;
+		q.im = q_.y;
+		w.real = w_.x;
+		w.im = w_.y;
+
+		H = Add(p, Mul(w, q));
+
+		Pong0Texture[uv.xy] = float4(H.real, H.im, 0, 1);
+	}
+}
+
+void VerticalButterFlies(float2 uv, int stage) {
+	Complex H;
+
+	if (pingpong == 0) {
+		float4 data = ButterflyTexture[float2(stage, uv.y)].rgba;
+		float2 p_ = Pong0Texture[float2(uv.x, data.z)].rg;
+		float2 q_ = Pong0Texture[float2(uv.x, data.w)].rg;
+		float2 w_ = float2(data.xy);
+
+		Complex p;
+		Complex q;
+		Complex w;
+
+		p.real = p_.x;
+		p.im = p_.y;
+		q.real = q_.x;
+		q.im = q_.y;
+		w.real = w_.x;
+		w.im = w_.y;
+
+		H = Add(p, Mul(w, q));
+
+		Pong1Texture[uv.xy] = float4(H.real, H.im, 0, 1);
+	}
+	else {
+		float4 data = ButterflyTexture[float2(stage, uv.y)].rgba;
+		float2 p_ = Pong1Texture[float2(uv.x, data.z)].rg;
+		float2 q_ = Pong1Texture[float2(uv.x, data.w)].rg;
+		float2 w_ = float2(data.xy);
+
+		Complex p;
+		Complex q;
+		Complex w;
+
+		p.real = p_.x;
+		p.im = p_.y;
+		q.real = q_.x;
+		q.im = q_.y;
+		w.real = w_.x;
+		w.im = w_.y;
+
+		H = Add(p, Mul(w, q));
+
+		Pong0Texture[uv.xy] = float4(H.real, H.im, 0, 1);
+	}
+}
+
+void InversionPermutation(float2 uv, int N) {
+	float perms[] = { 1.0, -1.0 };
+
+	int index = (int)((uv.x + uv.y) % 2);
+	float perm = perms[index];
+
+	float NSquared = pow(N, 2);
+
+	if (pingpong == 0) {
+		float h = Pong0Texture[uv.xy].r;
+		float hVal = perm * (h / (float)NSquared);
+
+		DisplacementTexture[uv.xy] = float4(hVal, hVal, hVal, 1);
+	}
+	else {
+		float h = Pong1Texture[uv.xy].r;
+		float hVal = perm * (h / (float)NSquared);
+
+		DisplacementTexture[uv.xy] = float4(hVal, hVal, hVal, 1);
+	}
+}*/

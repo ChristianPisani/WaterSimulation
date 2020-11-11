@@ -14,7 +14,7 @@ namespace Assets.FFT {
         public bool DrawReal;
         public bool Shift;
 
-        readonly RenderTexture Input;
+        internal RenderTexture Input;
         internal RenderTexture Pong0Texture;
         internal RenderTexture Pong1Texture;
 
@@ -30,16 +30,17 @@ namespace Assets.FFT {
         int readFft;
         int shift;
 
-        public FFTGpu(RenderTexture input)
+        public FFTGpu(RenderTexture input, ComputeShader fftComputeShader)
         {
             Input = input;
+            FourierCompute = fftComputeShader;
 
             Initialize();
         }
 
         public void Initialize()
         {
-            int N = Input.width;
+            N = Input.width / 2;
 
             if (!Mathf.IsPowerOfTwo(N))
             {
@@ -54,10 +55,11 @@ namespace Assets.FFT {
             Pong0Texture = Pong0Texture.Initialize(new Vector2(N, N));
             Pong1Texture = Pong1Texture.Initialize(new Vector2(N, N));
 
+            FindKernels();
             SetShaderVariables();
         }
 
-        public RenderTexture AnalyseImage(RenderTexture Input)
+        public RenderTexture AnalyseImage()
         {
             FourierCompute.Dispatch(initalize, N / 8, N / 8, 1);
 
@@ -78,10 +80,9 @@ namespace Assets.FFT {
             return Pong0Texture;
         }
 
-        public void SetDirection(bool inverse)
+        public void SetDirection(int dir)
         {
-            TransformInverse = inverse;
-            int dir = inverse ? -1 : 1;
+            TransformInverse = dir == -1 ? true : false;
             FourierCompute.SetInt("_Dir", dir);
         }
 
