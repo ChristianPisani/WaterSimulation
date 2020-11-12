@@ -67,6 +67,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: cb3ab42d3f6a4494fb306c32d91af450, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -84,30 +88,30 @@ Material:
     - _Amplitude6: 1
     - _Attenuation: 1
     - _BumpScale: 1
-    - _ColorLerpStrength: 0
+    - _ColorLerpStrength: -0.204
     - _Cutoff: 0.5
     - _Depth: 10
     - _DetailNormalMapScale: 1
-    - _DisplacementStrength: 1
-    - _Distortion: 0.5
+    - _DisplacementStrength: 1.41
+    - _Distortion: 4.04
     - _DstBlend: 0
     - _EdgeLength: 2
     - _GlossMapScale: 1
-    - _Glossiness: 0.307
+    - _Glossiness: 0.845
     - _GlossyReflections: 1
-    - _Metallic: 0.254
+    - _Metallic: 0
     - _Mode: 0
     - _NeighbourDistance: 0.01
-    - _Normal1Scale: 0.5
+    - _Normal1Scale: 0.68
     - _Normal2Scale: 0.75
     - _Normal3Scale: 1
-    - _NormalStrength: 0.5
+    - _NormalStrength: 21.1
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _Phase: 0
     - _Phong: 0.534
-    - _Power: 1
-    - _Scale: 1
+    - _Power: 3.22
+    - _Scale: -1.57
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _Speed1: 1
@@ -117,21 +121,21 @@ Material:
     - _Speed5: 1
     - _Speed6: 1
     - _SrcBlend: 1
-    - _TimeScale: 10
+    - _TimeScale: 9.83
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Ambient: {r: 0.49056602, g: 0.49056602, b: 0.49056602, a: 1}
+    - _Ambient: {r: 0, g: 0, b: 0, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _ColorBottom: {r: 0.09807763, g: 0.36031553, b: 0.7169812, a: 1}
-    - _ColorTop: {r: 0.19335172, g: 0.3937361, b: 0.5188679, a: 1}
+    - _ColorBottom: {r: 0.19668922, g: 0.38531557, b: 0.6415094, a: 1}
+    - _ColorTop: {r: 0.18115878, g: 0.4118539, b: 0.5566038, a: 1}
     - _Direction1: {r: 1, g: 0, b: 0, a: 1}
     - _Direction2: {r: 1, g: 0, b: 0, a: 1}
     - _Direction3: {r: 1, g: 0, b: 0, a: 1}
     - _Direction4: {r: 1, g: 0, b: 0, a: 1}
     - _Direction5: {r: 1, g: 0, b: 0, a: 1}
     - _Direction6: {r: 1, g: 0, b: 0, a: 1}
-    - _Emission: {r: 0, g: 0, b: 0, a: 1}
+    - _Emission: {r: 0.764151, g: 0.4987436, b: 0.06127627, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Normal1Speed: {r: 0.5, g: 0, b: 0, a: 1}
     - _Normal2Speed: {r: -0.5, g: 0, b: 0, a: 1}

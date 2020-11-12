@@ -68,5 +68,12 @@ namespace Assets.ImageExtensions {
 
             return texture;
         }
+
+        public static RenderTexture Initialize(this RenderTexture tex, int width, int height = 0)
+        {
+            if (height == 0) height = width;
+            
+            return Initialize(tex, new Vector2(width, height));
+        }
     }
 }

@@ -30,21 +30,21 @@ namespace Assets.FFT {
         int readFft;
         int shift;
 
-        public FFTGpu(RenderTexture input, ComputeShader fftComputeShader)
+        public FFTGpu(RenderTexture input, ComputeShader fftComputeShader, int size)
         {
             Input = input;
             FourierCompute = fftComputeShader;
+
+            N = size;
 
             Initialize();
         }
 
         public void Initialize()
-        {
-            N = Input.width / 2;
-
+        {            
             if (!Mathf.IsPowerOfTwo(N))
             {
-                throw new Exception("Texture must be a power of two");
+               // throw new Exception("Texture must be a power of two");
             }
 
             int logN = (int)Mathf.Log(N, 2);

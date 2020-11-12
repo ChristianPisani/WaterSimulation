@@ -5,6 +5,9 @@ using UnityEngine;
 namespace Assets.Scripts {
     class WaterBehaviour : MonoBehaviour {
         public float Amplitude = 1;
+        public float NormalStrength;
+        public float DisplacementStrength;
+        public float TimeScale = 1;
         public Vector2 WindDirection = new Vector2(1, 1);
         public float WindForce = 40;
         public float Depth = 10;
@@ -17,6 +20,8 @@ namespace Assets.Scripts {
         internal RenderTexture H0KTex;
         internal RenderTexture H0NegativeKTex;
         internal RenderTexture TimedependentHTex;
+        internal RenderTexture NormalSpectrum;
+        internal RenderTexture NormalTex;
         internal RenderTexture DisplacementTexture;
         internal Texture2D NoiseTexture;
 
@@ -24,6 +29,7 @@ namespace Assets.Scripts {
         private int timeDependentTextureKernel;
         
         internal FFTGpu FFT;
+        internal FFTGpu NormalFFT;
 
         public void Start()
         {
@@ -41,20 +47,27 @@ namespace Assets.Scripts {
 
             WaterShader.Dispatch(setupKernel, N / 8, N / 8, 1);
 
-            FFT = new FFTGpu(TimedependentHTex, FFTShader);
+            FFT = new FFTGpu(TimedependentHTex, Instantiate(FFTShader), N);
             FFT.SetDirection(-1);
+            FFT.Shift = true;
             FFT.DrawReal = true;
+
+            NormalFFT = new FFTGpu(NormalSpectrum, Instantiate(FFTShader), N);
+            NormalFFT.SetDirection(-1);
+            NormalFFT.Shift = true;
+            //NormalFFT.DrawReal = true;
 
             GenerateWaterHeightField();
 
             WaterMaterial.SetTexture("_HeightMap", FFT.Pong0Texture);
+            WaterMaterial.SetTexture("_NormalMap", NormalFFT.Pong0Texture);
         }
 
         public void Update()
         {
             if (InValidState()) return;
 
-            WaterShader.SetFloat("_Time", Time.time + 1000);
+            WaterShader.SetFloat("_Time", (Time.time + 1000) * TimeScale);
 
             GenerateFrequencyDomain();
             GenerateWaterHeightField();
@@ -70,6 +83,7 @@ namespace Assets.Scripts {
         public void GenerateWaterHeightField()
         {
             FFT.AnalyseImage();
+            NormalFFT.AnalyseImage();
         }
 
         private bool InValidState()
@@ -79,10 +93,12 @@ namespace Assets.Scripts {
 
         private void CreateTextures()
         {
-            H0KTex = H0KTex.Initialize(new Vector2(N, N));
-            H0NegativeKTex = H0NegativeKTex.Initialize(new Vector2(N, N));
-            TimedependentHTex = TimedependentHTex.Initialize(new Vector2(N, N));
-            DisplacementTexture = DisplacementTexture.Initialize(new Vector2(N, N));
+            H0KTex = H0KTex.Initialize(N);
+            H0NegativeKTex = H0NegativeKTex.Initialize(N);
+            TimedependentHTex = TimedependentHTex.Initialize(N);
+            DisplacementTexture = DisplacementTexture.Initialize(N);
+            NormalTex = NormalTex.Initialize(N);
+            NormalSpectrum = NormalSpectrum.Initialize(N);
         }
 
         private void FindKernels()
@@ -93,20 +109,24 @@ namespace Assets.Scripts {
 
         private void SetShaderVariables()
         {
-            WaterShader.SetFloat("_Time", Time.time + 1000);
+            WaterShader.SetFloat("_Time", (Time.time + 1000) * TimeScale);
             WaterShader.SetFloat("_Amplitude", Amplitude);
             WaterShader.SetFloat("_WindForce", WindForce);
             WaterShader.SetVector("_WindDirection", WindDirection);
             WaterShader.SetFloat("_Depth", Depth);
             WaterShader.SetInt("_Resolution", N);
+            WaterShader.SetFloat("_NormalStrength", NormalStrength);
+            WaterShader.SetFloat("_DisplacementStrength", DisplacementStrength);
 
             WaterShader.SetTexture(setupKernel, "H0KTexture", H0KTex);
             WaterShader.SetTexture(setupKernel, "HTKTexture", TimedependentHTex);
+            WaterShader.SetTexture(setupKernel, "NormalTexture", NormalSpectrum);
             WaterShader.SetTexture(setupKernel, "H0NegKTexture", H0NegativeKTex);
             WaterShader.SetTexture(setupKernel, "NoiseTexture", NoiseTexture);
 
             WaterShader.SetTexture(timeDependentTextureKernel, "H0KTexture", H0KTex);
             WaterShader.SetTexture(timeDependentTextureKernel, "HTKTexture", TimedependentHTex);
+            WaterShader.SetTexture(timeDependentTextureKernel, "NormalTexture", NormalSpectrum);
             WaterShader.SetTexture(timeDependentTextureKernel, "H0NegKTexture", H0NegativeKTex);
             WaterShader.SetTexture(timeDependentTextureKernel, "NoiseTexture", NoiseTexture);
         }

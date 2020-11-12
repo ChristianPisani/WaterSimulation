@@ -4,6 +4,7 @@
 RWTexture2D<float4> H0KTexture;
 RWTexture2D<float4> H0NegKTexture;
 RWTexture2D<float4> HTKTexture;
+RWTexture2D<float4> NormalTexture;
 
 #include "../Complex.compute"
 #include "../FourierDomain.compute"
@@ -16,6 +17,8 @@ float _WindForce;
 float2 _WindDirection;
 float _Depth;
 int _Resolution;
+float _DisplacementStrength;
+float _NormalStrength;
 
 [numthreads(8, 8, 1)]
 void Setup(uint3 id : SV_DispatchThreadID)
@@ -32,9 +35,21 @@ void Setup(uint3 id : SV_DispatchThreadID)
 	H0KTexture[id.xy] = float4(h0k.real, h0k.im, 0, 1);
 	H0NegKTexture[id.xy] = float4(h0NegK.real, h0NegK.im, 0, 1);
 
-	Complex htk = FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t);
+	Complex x;
+	x.real = 0;
+	x.im = dot(k, id.xy);
 
-	HTKTexture[id.xy] = float4(htk.real, htk.im, 0, 1);
+	Complex htk = Mul(FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t), Exp(x));
+
+	Complex normalCalc;
+	normalCalc.real = 0;
+	normalCalc.im = length(k);
+
+	Complex normal = Mul(Mul(htk, normalCalc), Exp(x));
+	
+	HTKTexture[id.xy] = float4(htk.real * _DisplacementStrength, htk.im * _DisplacementStrength, 0, 1);
+	NormalTexture[id.xy] = float4(normal.real * _NormalStrength, normal.im * _NormalStrength, 0, 1);
+
 	//Pong0Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
 	//Pong1Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
 }
@@ -56,9 +71,20 @@ void GenerateTimeDependentTexture(uint3 id : SV_DispatchThreadID)
 	h0NegK.real = H0NegKTexture[id.xy].r;
 	h0NegK.im = H0NegKTexture[id.xy].g;
 
-	Complex htk = FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t);
+	Complex x;
+	x.real = 0;
+	x.im = dot(k, id.xy);
 
-	HTKTexture[id.xy] = float4(htk.real, htk.im, 0, 1);
+	Complex htk = Mul(FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t), Exp(x));
+
+	Complex normalCalc;
+	normalCalc.real = 0;
+	normalCalc.im = length(k);
+
+	Complex normal = Mul(Mul(htk, normalCalc), Exp(x));
+
+	HTKTexture[id.xy] = float4(htk.real * _DisplacementStrength, htk.im * _DisplacementStrength, 0, 1);
+	NormalTexture[id.xy] = float4(normal.real * _NormalStrength, normal.im * _NormalStrength, 0, 1);
 	//Pong0Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
 	//Pong1Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
 }

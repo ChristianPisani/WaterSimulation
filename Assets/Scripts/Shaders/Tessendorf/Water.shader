@@ -1,16 +1,4 @@
-﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
-
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
-// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
-
-// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
-
-Shader "Tessendorf/Water"
+﻿Shader "Tessendorf/Water"
 {
 	Properties
 	{
@@ -24,7 +12,7 @@ Shader "Tessendorf/Water"
 		_Attenuation("Attenuation", float) = 1
 		_Ambient("Ambient", Color) = (1,1,1,1)
 
-		_EdgeLength("Edge length", Range(2,50)) = 5
+		_EdgeLength("Edge length", Range(0.1,50)) = 5
 		_Phong("Edge Phong Strengh", Range(0,1)) = 0.5
 
 		_ColorTop("Color top", Color) = (1,1,1,1)
@@ -32,6 +20,7 @@ Shader "Tessendorf/Water"
 		_ColorLerpStrength("Color lerp strength", Range(-1, 1)) = 0
 
 		_HeightMap("Heightmap", 2D) = "bump" {}
+		_NormalMap("Normalmap", 2D) = "bump" {}
 		_DisplacementStrength("Heightmap displacement strength", Range(0, 4)) = 1
 
 		_Normal1("Normal 1", 2D) = "bump" {}
@@ -46,7 +35,7 @@ Shader "Tessendorf/Water"
 		_Normal3Speed("Normal 3 Speed", Vector) = (0, 1.0, 0)
 		_Normal3Scale("Normal 3 Scale", Range(0, 4)) = 1.0
 
-		_NormalStrength("NormalStrength", Range(-1, 1)) = 0.5
+		_NormalStrength("NormalStrength", Range(-100, 100)) = 0.5
 
 		_NeighbourDistance("NeighbourDistance", Range(0.0001,1)) = 0.01
 		_TimeScale("Timescale", Range(0, 20)) = 10
@@ -61,7 +50,7 @@ Shader "Tessendorf/Water"
 			GrabPass { "_BackgroundTexture" }
 
 			CGPROGRAM
-			#pragma surface surf StandardTranslucent vertex:vert fullforwardshadows addshadow tessellate:tessEdge tessphong:_Phong
+			#pragma surface surf StandardTranslucent vertex:vert fullforwardshadows addshadow tessellate:tessEdge
 
 			// Use shader model 3.0 target, to get nicer looking lighting
 			#pragma target 3.0
@@ -75,8 +64,8 @@ Shader "Tessendorf/Water"
 		sampler2D _DepthTexture;
 		
 		sampler2D _HeightMap;
-		sampler2D _HeightMap_ST;
-
+		sampler2D _NormalMap;
+		
 		sampler2D _Normal1;
 		sampler2D _Normal2;
 		sampler2D _Normal3;
@@ -191,13 +180,13 @@ Shader "Tessendorf/Water"
 			
 			float4 worldPos = mul(unity_ObjectToWorld, v.vertex);
 			
-			fixed d = tex2Dlod(_HeightMap, float4(abs(worldPos.x) % 1, abs(worldPos.z) % 1, 0, 0)).r;
-
-			float time = _Time * _TimeScale;
-
+			//fixed d = tex2Dlod(_HeightMap, float4(abs(worldPos.x) % 1, abs(worldPos.z) % 1, 0, 0)).r;
+			//float2 normal = tex2Dlod(_NormalMap, float4(abs(worldPos.x) % 1, abs(worldPos.z) % 1, 0, 0)).rg;
+			fixed d = tex2Dlod(_HeightMap, v.texcoord).r;
+			float2 normal = tex2Dlod(_NormalMap, v.texcoord).rg;
 			
 			v.vertex.y = d;
-			
+			v.normal.xyz = float3(-normal.x, 0.5, -normal.y);
 
 			v.color = v.vertex;
 		}

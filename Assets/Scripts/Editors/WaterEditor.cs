@@ -16,11 +16,16 @@ class WaterEditor : Editor {
         t.H0KTex.DrawTextureField("h0k", texSize);
         t.H0NegativeKTex.DrawTextureField("h0(-k)", texSize);
         t.TimedependentHTex.DrawTextureField("hkt", texSize);
+        t.NormalSpectrum.DrawTextureField("Normal spectrum", texSize);
 
         if (t.FFT != null && t.FFT.Pong0Texture != null)
         {
             t.FFT.Pong0Texture.DrawTextureField("Displacement texture", texSize);
-        }    
+        }
+        if (t.NormalFFT != null && t.NormalFFT.Pong0Texture != null)
+        {
+            t.NormalFFT.Pong0Texture.DrawTextureField("Normal", texSize);
+        }
 
         if (GUILayout.Button("Initialize"))
         {

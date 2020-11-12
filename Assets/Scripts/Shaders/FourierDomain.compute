@@ -2,8 +2,8 @@
 float2 GetWaveDirection(float x, float y, float N)
 {
 	float L = 1000;
-	float n = x - (N / 2.0);
-	float m = y - (N / 2.0);
+	float n = x + 1;
+	float m = y + 1;
 
 	return float2(
 		(2.0 * 3.14159265 * n) / L,
@@ -29,7 +29,7 @@ float PhilipsSpectrum(float A, float2 k, float V, float2 w)
 	float divPart = exp(-1.0 / pow(kL * L, 2)) / pow(kL, 4);
 
 	float dotProduct = dot(normalize(k), normalize(w));
-	float dotSquared = pow(dotProduct, 2); // Raise this to higher power for more windaligned waves
+	float dotSquared = pow(dotProduct, 8); // Raise this to higher power for more windaligned waves
 
 	/*
 		This model, while relatively simple,
