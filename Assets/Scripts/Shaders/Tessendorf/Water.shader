@@ -21,6 +21,7 @@
 
 		_HeightMap("Heightmap", 2D) = "bump" {}
 		_NormalMap("Normalmap", 2D) = "bump" {}
+		_ChoppyMap("Choppymap", 2D) = "bump" {}
 		_DisplacementStrength("Heightmap displacement strength", Range(0, 4)) = 1
 
 		_Normal1("Normal 1", 2D) = "bump" {}
@@ -42,7 +43,7 @@
 	}
 		SubShader
 		{
-			Tags { "Queue" = "Transparent" "IgnoreProjector" = "true" "ForceNoShadowCasting" = "False"  "RenderType" = "Opaque" }
+			Tags { "Queue" = "Opaque" "IgnoreProjector" = "true" "ForceNoShadowCasting" = "False"  "RenderType" = "Opaque" }
 			ZWrite on
 			Cull off
 			LOD 600
@@ -50,7 +51,9 @@
 			GrabPass { "_BackgroundTexture" }
 
 			CGPROGRAM
-			#pragma surface surf StandardTranslucent vertex:vert fullforwardshadows addshadow tessellate:tessEdge
+			#pragma surface surf StandardTranslucent vertex:vert fullforwardshadows addshadow
+			//#pragma tessellate:tessEdge
+			
 
 			// Use shader model 3.0 target, to get nicer looking lighting
 			#pragma target 3.0
@@ -65,6 +68,7 @@
 		
 		sampler2D _HeightMap;
 		sampler2D _NormalMap;
+		sampler2D _ChoppyMap;
 		
 		sampler2D _Normal1;
 		sampler2D _Normal2;
@@ -146,6 +150,12 @@
 			return UnityEdgeLengthBasedTess(v0.vertex, v1.vertex, v2.vertex, _EdgeLength);
 		}
 
+		float4 tessDistance(appdata_full v0, appdata_full v1, appdata_full v2) {
+			float minDist = 2.0;
+			float maxDist = 20.0;
+			return UnityDistanceBasedTess(v0.vertex, v1.vertex, v2.vertex, minDist, maxDist, _EdgeLength);
+		}
+
 		void surf(Input IN, inout SurfaceOutputStandard o)
 		{
 			float4 vertex = IN.color;
@@ -158,7 +168,7 @@
 
 			float sceneZ = LinearEyeDepth(tex2Dproj(_DepthTexture, UNITY_PROJ_COORD(IN.screenPos)).r);
 
-			half4 background = tex2Dproj(_BackgroundTexture, UNITY_PROJ_COORD(grabUV));
+			half4 background = tex2Dproj(_BackgroundTexture, UNITY_PROJ_COORD(grabUV + sin(vertex.g)));
 			background.r *= 0.25;
 			background.g *= 0.7;
 			background.b *= 0.8;
@@ -178,15 +188,17 @@
 		void vert(inout appdata_full v) {
 			//UNITY_INITIALIZE_OUTPUT(Input, o);
 			
-			float4 worldPos = mul(unity_ObjectToWorld, v.vertex);
+			float4 worldPos = mul(unity_ObjectToWorld, v.vertex) * 0.1;
 			
-			//fixed d = tex2Dlod(_HeightMap, float4(abs(worldPos.x) % 1, abs(worldPos.z) % 1, 0, 0)).r;
-			//float2 normal = tex2Dlod(_NormalMap, float4(abs(worldPos.x) % 1, abs(worldPos.z) % 1, 0, 0)).rg;
-			fixed d = tex2Dlod(_HeightMap, v.texcoord).r;
-			float2 normal = tex2Dlod(_NormalMap, v.texcoord).rg;
+			float d = tex2Dlod(_HeightMap, float4(abs(worldPos.x) % 1, abs(worldPos.z) % 1, 0, 0)).r;
+			float2 choppy = tex2Dlod(_ChoppyMap, float4(abs(worldPos.x) % 1, abs(worldPos.z) % 1, 0, 0)).rg;
+			float2 normal = tex2Dlod(_NormalMap, float4(abs(worldPos.x) % 1, abs(worldPos.z) % 1, 0, 0)).rg;
+			//fixed d = tex2Dlod(_HeightMap, v.texcoord).r;
+			//float2 normal = tex2Dlod(_NormalMap, v.texcoord).rg;
 			
 			v.vertex.y = d;
-			v.normal.xyz = float3(-normal.x, 0.5, -normal.y);
+			v.vertex.xz += choppy;
+			v.normal.xyz = float3(-normal.x, 1, -normal.y);
 
 			v.color = v.vertex;
 		}

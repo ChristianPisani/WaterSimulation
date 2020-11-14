@@ -5,6 +5,7 @@ RWTexture2D<float4> H0KTexture;
 RWTexture2D<float4> H0NegKTexture;
 RWTexture2D<float4> HTKTexture;
 RWTexture2D<float4> NormalTexture;
+RWTexture2D<float4> ChoppyTexture;
 
 #include "../Complex.compute"
 #include "../FourierDomain.compute"
@@ -19,6 +20,8 @@ float _Depth;
 int _Resolution;
 float _DisplacementStrength;
 float _NormalStrength;
+float _Choppyness;
+float _ChoppyStrength;
 
 [numthreads(8, 8, 1)]
 void Setup(uint3 id : SV_DispatchThreadID)
@@ -39,16 +42,24 @@ void Setup(uint3 id : SV_DispatchThreadID)
 	x.real = 0;
 	x.im = dot(k, id.xy);
 
-	Complex htk = Mul(FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t), Exp(x));
+	Complex expX = Exp(x);
+
+	Complex htk = Mul(FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t), expX);
 
 	Complex normalCalc;
 	normalCalc.real = 0;
 	normalCalc.im = length(k);
 
-	Complex normal = Mul(Mul(htk, normalCalc), Exp(x));
+	Complex choppyCalc;
+	choppyCalc.real = 0;
+	choppyCalc.im = _Choppyness / length(k);
+
+	Complex normal = Mul(Mul(htk, normalCalc), expX);
+	Complex choppy = Mul(Mul(htk, choppyCalc), expX);
 	
 	HTKTexture[id.xy] = float4(htk.real * _DisplacementStrength, htk.im * _DisplacementStrength, 0, 1);
 	NormalTexture[id.xy] = float4(normal.real * _NormalStrength, normal.im * _NormalStrength, 0, 1);
+	ChoppyTexture[id.xy] = float4(choppy.real * _ChoppyStrength, choppy.im * _ChoppyStrength, 0, 1);
 
 	//Pong0Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
 	//Pong1Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
@@ -75,16 +86,24 @@ void GenerateTimeDependentTexture(uint3 id : SV_DispatchThreadID)
 	x.real = 0;
 	x.im = dot(k, id.xy);
 
-	Complex htk = Mul(FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t), Exp(x));
+	Complex expX = Exp(x);
+
+	Complex htk = Mul(FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t), expX);
 
 	Complex normalCalc;
 	normalCalc.real = 0;
 	normalCalc.im = length(k);
 
-	Complex normal = Mul(Mul(htk, normalCalc), Exp(x));
+	Complex choppyCalc;
+	choppyCalc.real = 0;
+	choppyCalc.im = _Choppyness / length(k);
+
+	Complex normal = Mul(Mul(htk, normalCalc), expX);
+	Complex choppy = Mul(Mul(htk, choppyCalc), expX);
 
 	HTKTexture[id.xy] = float4(htk.real * _DisplacementStrength, htk.im * _DisplacementStrength, 0, 1);
 	NormalTexture[id.xy] = float4(normal.real * _NormalStrength, normal.im * _NormalStrength, 0, 1);
+	ChoppyTexture[id.xy] = float4(choppy.real * _ChoppyStrength, choppy.im * _ChoppyStrength, 0, 1);
 	//Pong0Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
 	//Pong1Texture[id.xy] = float4(htk.real, htk.im, 0, 1);
 }

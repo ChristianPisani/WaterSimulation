@@ -7,6 +7,8 @@ namespace Assets.Scripts {
         public float Amplitude = 1;
         public float NormalStrength;
         public float DisplacementStrength;
+        public float Choppyness;
+        public float ChoppyStrength;
         public float TimeScale = 1;
         public Vector2 WindDirection = new Vector2(1, 1);
         public float WindForce = 40;
@@ -20,6 +22,7 @@ namespace Assets.Scripts {
         internal RenderTexture H0KTex;
         internal RenderTexture H0NegativeKTex;
         internal RenderTexture TimedependentHTex;
+        internal RenderTexture ChoppyWaveField;
         internal RenderTexture NormalSpectrum;
         internal RenderTexture NormalTex;
         internal RenderTexture DisplacementTexture;
@@ -30,6 +33,7 @@ namespace Assets.Scripts {
         
         internal FFTGpu FFT;
         internal FFTGpu NormalFFT;
+        internal FFTGpu ChoppyFFT;
 
         public void Start()
         {
@@ -55,12 +59,16 @@ namespace Assets.Scripts {
             NormalFFT = new FFTGpu(NormalSpectrum, Instantiate(FFTShader), N);
             NormalFFT.SetDirection(-1);
             NormalFFT.Shift = true;
-            //NormalFFT.DrawReal = true;
 
+            ChoppyFFT = new FFTGpu(ChoppyWaveField, Instantiate(FFTShader), N);
+            ChoppyFFT.SetDirection(-1);
+            ChoppyFFT.Shift = true;
+            
             GenerateWaterHeightField();
 
             WaterMaterial.SetTexture("_HeightMap", FFT.Pong0Texture);
             WaterMaterial.SetTexture("_NormalMap", NormalFFT.Pong0Texture);
+            WaterMaterial.SetTexture("_ChoppyMap", ChoppyFFT.Pong0Texture);
         }
 
         public void Update()
@@ -84,6 +92,7 @@ namespace Assets.Scripts {
         {
             FFT.AnalyseImage();
             NormalFFT.AnalyseImage();
+            ChoppyFFT.AnalyseImage();
         }
 
         private bool InValidState()
@@ -99,6 +108,7 @@ namespace Assets.Scripts {
             DisplacementTexture = DisplacementTexture.Initialize(N);
             NormalTex = NormalTex.Initialize(N);
             NormalSpectrum = NormalSpectrum.Initialize(N);
+            ChoppyWaveField = ChoppyWaveField.Initialize(N);
         }
 
         private void FindKernels()
@@ -117,15 +127,19 @@ namespace Assets.Scripts {
             WaterShader.SetInt("_Resolution", N);
             WaterShader.SetFloat("_NormalStrength", NormalStrength);
             WaterShader.SetFloat("_DisplacementStrength", DisplacementStrength);
+            WaterShader.SetFloat("_ChoppyStrength", ChoppyStrength);
+            WaterShader.SetFloat("_Choppyness", Choppyness);
 
             WaterShader.SetTexture(setupKernel, "H0KTexture", H0KTex);
             WaterShader.SetTexture(setupKernel, "HTKTexture", TimedependentHTex);
             WaterShader.SetTexture(setupKernel, "NormalTexture", NormalSpectrum);
+            WaterShader.SetTexture(setupKernel, "ChoppyTexture", ChoppyWaveField);
             WaterShader.SetTexture(setupKernel, "H0NegKTexture", H0NegativeKTex);
             WaterShader.SetTexture(setupKernel, "NoiseTexture", NoiseTexture);
 
             WaterShader.SetTexture(timeDependentTextureKernel, "H0KTexture", H0KTex);
             WaterShader.SetTexture(timeDependentTextureKernel, "HTKTexture", TimedependentHTex);
+            WaterShader.SetTexture(timeDependentTextureKernel, "ChoppyTexture", ChoppyWaveField);
             WaterShader.SetTexture(timeDependentTextureKernel, "NormalTexture", NormalSpectrum);
             WaterShader.SetTexture(timeDependentTextureKernel, "H0NegKTexture", H0NegativeKTex);
             WaterShader.SetTexture(timeDependentTextureKernel, "NoiseTexture", NoiseTexture);

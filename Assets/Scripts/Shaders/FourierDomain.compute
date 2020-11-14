@@ -20,7 +20,7 @@ float PhilipsSpectrum(float A, float2 k, float V, float2 w)
 	float L = (V * V) / 9.81;
 	float kL = length(k);
 
-	//if (kL < 0.00001) kL = 0.00001;
+	if (kL < 0.01) kL = 0.01;
 
 	float kSquared = pow(kL, 2);
 	float LSquared = pow(L, 2);
@@ -29,7 +29,7 @@ float PhilipsSpectrum(float A, float2 k, float V, float2 w)
 	float divPart = exp(-1.0 / pow(kL * L, 2)) / pow(kL, 4);
 
 	float dotProduct = dot(normalize(k), normalize(w));
-	float dotSquared = pow(dotProduct, 8); // Raise this to higher power for more windaligned waves
+	float dotSquared = pow(dotProduct, 2); // Raise this to higher power for more windaligned waves
 
 	/*
 		This model, while relatively simple,
@@ -70,7 +70,7 @@ float DispercionRelation(float2 k, float depth, float time)
 {
 	float magK = length(k);
 
-	//if (magK < 0.00001) magK = 0.00001;
+	if (magK < 0.01) magK = 0.01;
 
 	return sqrt(9.81 * magK);
 

@@ -95,7 +95,7 @@ Material:
     - _DisplacementStrength: 1.41
     - _Distortion: 4.04
     - _DstBlend: 0
-    - _EdgeLength: 2
+    - _EdgeLength: 50
     - _GlossMapScale: 1
     - _Glossiness: 0.845
     - _GlossyReflections: 1
@@ -127,15 +127,15 @@ Material:
     m_Colors:
     - _Ambient: {r: 0, g: 0, b: 0, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _ColorBottom: {r: 0.19668922, g: 0.38531557, b: 0.6415094, a: 1}
-    - _ColorTop: {r: 0.18115878, g: 0.4118539, b: 0.5566038, a: 1}
+    - _ColorBottom: {r: 0, g: 0, b: 0, a: 1}
+    - _ColorTop: {r: 0, g: 0, b: 0, a: 1}
     - _Direction1: {r: 1, g: 0, b: 0, a: 1}
     - _Direction2: {r: 1, g: 0, b: 0, a: 1}
     - _Direction3: {r: 1, g: 0, b: 0, a: 1}
     - _Direction4: {r: 1, g: 0, b: 0, a: 1}
     - _Direction5: {r: 1, g: 0, b: 0, a: 1}
     - _Direction6: {r: 1, g: 0, b: 0, a: 1}
-    - _Emission: {r: 0.764151, g: 0.4987436, b: 0.06127627, a: 1}
+    - _Emission: {r: 0.735849, g: 0.47345024, b: 0.045122836, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Normal1Speed: {r: 0.5, g: 0, b: 0, a: 1}
     - _Normal2Speed: {r: -0.5, g: 0, b: 0, a: 1}
