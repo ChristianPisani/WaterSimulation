@@ -12,8 +12,7 @@
 		_Attenuation("Attenuation", float) = 1
 		_Ambient("Ambient", Color) = (1,1,1,1)
 
-		_EdgeLength("Edge length", Range(0.1,50)) = 5
-		_Phong("Edge Phong Strengh", Range(0,1)) = 0.5
+		_TesselationStrength("Tesselation strength", Range(0.1,512)) = 5
 
 		_ColorTop("Color top", Color) = (1,1,1,1)
 		_ColorBottom("Color bottom", Color) = (1,1,1,1)
@@ -43,15 +42,15 @@
 	}
 		SubShader
 		{
-			Tags { "Queue" = "Opaque" "IgnoreProjector" = "true" "ForceNoShadowCasting" = "False"  "RenderType" = "Opaque" }
+			Tags { "Queue" = "Transparent" "IgnoreProjector" = "true" "ForceNoShadowCasting" = "False"  "RenderType" = "Opaque" }
 			ZWrite on
 			Cull off
 			LOD 600
 
-			GrabPass { "_BackgroundTexture" }
+			//GrabPass { "_BackgroundTexture" }
 
 			CGPROGRAM
-			#pragma surface surf StandardTranslucent vertex:vert fullforwardshadows addshadow
+			#pragma surface surf StandardTranslucent tessellate:tessDistance vertex:vert fullforwardshadows addshadow
 			//#pragma tessellate:tessEdge
 			
 
@@ -109,8 +108,7 @@
 
 		fixed4 color;
 
-		float _Phong;
-		float _EdgeLength;
+		float _TesselationStrength;
 
 		float thickness = 0.5;
 
@@ -147,13 +145,13 @@
 
 		float4 tessEdge(appdata_full v0, appdata_full v1, appdata_full v2)
 		{
-			return UnityEdgeLengthBasedTess(v0.vertex, v1.vertex, v2.vertex, _EdgeLength);
+			return UnityEdgeLengthBasedTess(v0.vertex, v1.vertex, v2.vertex, _TesselationStrength);
 		}
 
 		float4 tessDistance(appdata_full v0, appdata_full v1, appdata_full v2) {
 			float minDist = 2.0;
-			float maxDist = 20.0;
-			return UnityDistanceBasedTess(v0.vertex, v1.vertex, v2.vertex, minDist, maxDist, _EdgeLength);
+			float maxDist = 200.0;
+			return UnityDistanceBasedTess(v0.vertex, v1.vertex, v2.vertex, minDist, maxDist, _TesselationStrength);
 		}
 
 		void surf(Input IN, inout SurfaceOutputStandard o)
@@ -163,17 +161,17 @@
 
 			o.Albedo = lerp(_ColorBottom, _ColorTop, colorBase.r);
 
-			float4 hpos = UnityObjectToClipPos(vertex);
-			float4 grabUV = ComputeGrabScreenPos(hpos);
+			//float4 hpos = UnityObjectToClipPos(vertex);
+			//float4 grabUV = ComputeGrabScreenPos(hpos);
 
-			float sceneZ = LinearEyeDepth(tex2Dproj(_DepthTexture, UNITY_PROJ_COORD(IN.screenPos)).r);
+			//float sceneZ = LinearEyeDepth(tex2Dproj(_DepthTexture, UNITY_PROJ_COORD(IN.screenPos)).r);
 
-			half4 background = tex2Dproj(_BackgroundTexture, UNITY_PROJ_COORD(grabUV + sin(vertex.g)));
-			background.r *= 0.25;
-			background.g *= 0.7;
-			background.b *= 0.8;
+			//half4 background = tex2Dproj(_BackgroundTexture, UNITY_PROJ_COORD(grabUV + cos(vertex.g)));
+			//background.r *= 0.25;
+			//background.g *= 0.7;
+			//background.b *= 0.8;
 
-			o.Emission = background * 0.5;
+			//o.Emission = background * 0.5;
 
 			o.Metallic = _Metallic;
 			o.Smoothness = _Glossiness;
@@ -191,8 +189,8 @@
 			float4 worldPos = mul(unity_ObjectToWorld, v.vertex) * 0.1;
 			
 			float d = tex2Dlod(_HeightMap, float4(abs(worldPos.x) % 1, abs(worldPos.z) % 1, 0, 0)).r;
-			float2 choppy = tex2Dlod(_ChoppyMap, float4(abs(worldPos.x) % 1, abs(worldPos.z) % 1, 0, 0)).rg;
-			float2 normal = tex2Dlod(_NormalMap, float4(abs(worldPos.x) % 1, abs(worldPos.z) % 1, 0, 0)).rg;
+			float2 choppy = tex2Dlod(_ChoppyMap, float4(abs(worldPos.x) % 1.0, abs(worldPos.z) % 1.0, 0, 0)).rg;
+			float2 normal = tex2Dlod(_NormalMap, float4(abs(worldPos.x) % 1.0, abs(worldPos.z) % 1.0, 0, 0)).rg;
 			//fixed d = tex2Dlod(_HeightMap, v.texcoord).r;
 			//float2 normal = tex2Dlod(_NormalMap, v.texcoord).rg;
 			
