@@ -94,12 +94,14 @@ void GenerateTimeDependentTexture(uint3 id : SV_DispatchThreadID)
 	normalCalc.real = 0;
 	normalCalc.im = length(k);
 
+	Complex choppyhtk = Mul(FourierAmplitude(h0k, h0NegK, _Amplitude, k, _WindForce, _WindDirection, _Depth, t / 2.0), expX);
+
 	Complex choppyCalc;
 	choppyCalc.real = 0;
 	choppyCalc.im = _Choppyness / length(k);
 
-	Complex normal = Mul(Mul(htk, normalCalc), expX);
-	Complex choppy = Mul(Mul(htk, choppyCalc), expX);
+	Complex normal = Mul(Mul(choppyhtk, normalCalc), expX);
+	Complex choppy = Mul(Mul(choppyhtk, choppyCalc), expX);
 
 	HTKTexture[id.xy] = float4(htk.real * _DisplacementStrength, htk.im * _DisplacementStrength, 0, 1);
 	NormalTexture[id.xy] = float4(normal.real * _NormalStrength, normal.im * _NormalStrength, 0, 1);

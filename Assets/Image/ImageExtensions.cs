@@ -64,6 +64,9 @@ namespace Assets.ImageExtensions {
             var texture = new RenderTexture((int)size.x, (int)size.y, 1);
             texture.enableRandomWrite = true;
             texture.format = RenderTextureFormat.DefaultHDR;
+            texture.antiAliasing = 1000;
+            texture.filterMode = FilterMode.Trilinear;
+            texture.useDynamicScale = true;
             texture.Create();
 
             return texture;

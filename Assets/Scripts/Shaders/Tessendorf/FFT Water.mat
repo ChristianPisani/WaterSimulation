@@ -11,7 +11,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: d9526247cdcfc184ba52a6497471efab, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
-  m_EnableInstancingVariants: 1
+  m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -92,18 +92,18 @@ Material:
     - _Amplitude6: 1
     - _Attenuation: 1
     - _BumpScale: 1
-    - _ColorLerpStrength: -0.204
+    - _ColorLerpStrength: -0.465
     - _Cutoff: 0.5
     - _Depth: 10
     - _DetailNormalMapScale: 1
     - _DisplacementStrength: 1.41
-    - _Distortion: 4.04
+    - _Distortion: 0.28
     - _DstBlend: 0
-    - _EdgeLength: 0.1
+    - _EdgeLength: 50
     - _GlossMapScale: 1
-    - _Glossiness: 0.814
+    - _Glossiness: 0.747
     - _GlossyReflections: 1
-    - _Metallic: 0
+    - _Metallic: -0.2
     - _Mode: 0
     - _NeighbourDistance: 0.01
     - _Normal1Scale: 0.68
@@ -113,9 +113,9 @@ Material:
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _Phase: 0
-    - _Phong: 0.534
-    - _Power: 3.22
-    - _Scale: -1.57
+    - _Phong: 1
+    - _Power: 5
+    - _Scale: 3
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _Speed1: 1
@@ -125,14 +125,15 @@ Material:
     - _Speed5: 1
     - _Speed6: 1
     - _SrcBlend: 1
+    - _TesselationStrength: 60
     - _TimeScale: 9.83
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Ambient: {r: 0, g: 0, b: 0, a: 1}
+    - _Ambient: {r: 0, g: 0.091379955, b: 0.24528301, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _ColorBottom: {r: 0, g: 0.29320952, b: 0.4433962, a: 1}
-    - _ColorTop: {r: 0, g: 0.36911955, b: 0.5849056, a: 1}
+    - _ColorBottom: {r: 0, g: 0.04967882, b: 0.14150941, a: 0.5019608}
+    - _ColorTop: {r: 0, g: 0.31426886, b: 0.49056602, a: 1}
     - _Direction1: {r: 1, g: 0, b: 0, a: 1}
     - _Direction2: {r: 1, g: 0, b: 0, a: 1}
     - _Direction3: {r: 1, g: 0, b: 0, a: 1}
