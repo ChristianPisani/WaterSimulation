@@ -61,12 +61,12 @@ namespace Assets.ImageExtensions {
 
         public static RenderTexture Initialize(this RenderTexture tex, Vector2 size)
         {
-            var texture = new RenderTexture((int)size.x, (int)size.y, 1);
+            var texture = new RenderTexture((int)size.x, (int)size.y, 24);
             texture.enableRandomWrite = true;
             texture.format = RenderTextureFormat.DefaultHDR;
-            texture.antiAliasing = 1000;
-            texture.filterMode = FilterMode.Trilinear;
-            texture.useDynamicScale = true;
+            texture.antiAliasing = 8;
+            texture.filterMode = FilterMode.Bilinear;
+            texture.wrapMode = TextureWrapMode.Repeat;
             texture.Create();
 
             return texture;

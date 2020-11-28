@@ -147,9 +147,11 @@ Shader "Tessendorf/Water"
 			}
 
 			half4 background = tex2Dproj(_BackgroundTexture, emUV);
-			
+			background.r *= 0.65;
+			background.g *= 0.8;
+			background.b *= 0.9;
 
-			o.Emission = (background + (o.Albedo / 2.0)) * 0.5;
+			o.Emission = background * 0.5;
 
 
 			o.Metallic = _Metallic;

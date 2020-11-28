@@ -92,7 +92,7 @@ Material:
     - _Amplitude6: 1
     - _Attenuation: 1
     - _BumpScale: 1
-    - _ColorLerpStrength: -0.465
+    - _ColorLerpStrength: -0.511
     - _Cutoff: 0.5
     - _Depth: 10
     - _DetailNormalMapScale: 1
@@ -101,9 +101,9 @@ Material:
     - _DstBlend: 0
     - _EdgeLength: 50
     - _GlossMapScale: 1
-    - _Glossiness: 0.747
+    - _Glossiness: 0.952
     - _GlossyReflections: 1
-    - _Metallic: -0.2
+    - _Metallic: 0.467
     - _Mode: 0
     - _NeighbourDistance: 0.01
     - _Normal1Scale: 0.68
@@ -113,7 +113,7 @@ Material:
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _Phase: 0
-    - _Phong: 1
+    - _Phong: 0.84
     - _Power: 5
     - _Scale: 3
     - _SmoothnessTextureChannel: 0
@@ -125,7 +125,7 @@ Material:
     - _Speed5: 1
     - _Speed6: 1
     - _SrcBlend: 1
-    - _TesselationStrength: 60
+    - _TesselationStrength: 613
     - _TimeScale: 9.83
     - _UVSec: 0
     - _ZWrite: 1
@@ -133,7 +133,7 @@ Material:
     - _Ambient: {r: 0, g: 0.091379955, b: 0.24528301, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _ColorBottom: {r: 0, g: 0.04967882, b: 0.14150941, a: 0.5019608}
-    - _ColorTop: {r: 0, g: 0.31426886, b: 0.49056602, a: 1}
+    - _ColorTop: {r: 0, g: 0.1494564, b: 0.18867922, a: 1}
     - _Direction1: {r: 1, g: 0, b: 0, a: 1}
     - _Direction2: {r: 1, g: 0, b: 0, a: 1}
     - _Direction3: {r: 1, g: 0, b: 0, a: 1}
