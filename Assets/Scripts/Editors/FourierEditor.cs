@@ -1,4 +1,5 @@
-﻿using Assets.ImageExtensions;
+﻿#if UNITY_EDITOR
+using Assets.ImageExtensions;
 using UnityEditor;
 using UnityEngine;
 
@@ -42,3 +43,4 @@ namespace Assets.Scripts.Editors {
         }       
     }
 }
+#endif

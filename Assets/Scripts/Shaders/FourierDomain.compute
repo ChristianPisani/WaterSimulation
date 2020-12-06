@@ -29,7 +29,7 @@ float PhilipsSpectrum(float A, float2 k, float V, float2 w)
 	float divPart = exp(-1.0 / pow(kL * L, 2)) / pow(kL, 4);
 
 	float dotProduct = dot(normalize(k), normalize(w));
-	float dotSquared = pow(dotProduct, 2); // Raise this to higher power for more windaligned waves
+	float dotSquared = pow(dotProduct, 4); // Raise this to higher power for more windaligned waves
 
 	/*
 		This model, while relatively simple,
@@ -38,7 +38,7 @@ float PhilipsSpectrum(float A, float2 k, float V, float2 w)
 		`  L, and modify the Phillips spectrum by the multiplicative factor
 		exp−k2`2
 	*/
-	float l = L / 2000.0;
+	float l = L / 400.0;
 	float removedSmallWaves = exp(-pow(kL, 2) * pow(l, 2));
 
 	return A * divPart * dotSquared * removedSmallWaves;
@@ -70,20 +70,21 @@ float DispercionRelation(float2 k, float depth, float time)
 {
 	float magK = length(k);
 
-	if (magK < 0.01) magK = 0.01;
+	//if (magK < 0.01) magK = 0.01;
 
-	return sqrt(9.81 * magK);
+	//return sqrt(9.81 * magK);
+	return sqrt(9.81 * magK * tanh(magK * depth));
 
-	/*
-	float magnitude = length(k);
+	
+	/*float magnitude = length(k);
 	if (magnitude < 0.00001) magnitude = 0.00001;
 
 	//return sqrt(9.81 * magnitude);
 	
-	float basic = BasicFrequence(time);
+	//float basic = BasicFrequence(time);
 	float dispersion = sqrt(9.81 * magnitude * tanh(magnitude * depth));
 
-	float tilingDispersion = ((int)(dispersion / basic)) * basic;
+	float tilingDispersion = ((int)(dispersion));
 
 	return tilingDispersion;*/
 }

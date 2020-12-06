@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(SpawnGrid))]
@@ -18,3 +19,4 @@ class SpawnGridEditor : Editor {
         }
     }
 }
+#endif

@@ -36,8 +36,9 @@ namespace Assets.ImageExtensions {
             texture.filterMode = FilterMode.Point;
 
             GUILayout.Label(name, style);
+#if UNITY_EDITOR
             EditorGUILayout.ObjectField(null, typeof(RenderTexture), false, GUILayout.Width(width), GUILayout.Height(width));
-
+#endif
             GUI.DrawTexture(GUILayoutUtility.GetLastRect(), texture);
         }
 
@@ -53,8 +54,9 @@ namespace Assets.ImageExtensions {
             texture.filterMode = FilterMode.Point;
 
             GUILayout.Label(name, style);
+#if UNITY_EDITOR
             EditorGUILayout.ObjectField(null, typeof(Texture2D), false, GUILayout.Width(width), GUILayout.Height(width));
-
+#endif
             GUI.DrawTexture(GUILayoutUtility.GetLastRect(), texture, ScaleMode.ScaleAndCrop);
         }
 

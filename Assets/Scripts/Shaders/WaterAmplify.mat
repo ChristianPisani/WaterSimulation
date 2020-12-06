@@ -9,10 +9,10 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: WaterAmplify
   m_Shader: {fileID: 4800000, guid: a0a21c4a6567c2c48ae1b946731dc3de, type: 3}
-  m_ShaderKeywords: _ADD_PRECOMPUTED_VELOCITY _BLENDMODE_ALPHA _DOUBLESIDED_ON _ENABLE_FOG_ON_TRANSPARENT
-    _SURFACE_TYPE_TRANSPARENT
+  m_ShaderKeywords: _ADD_PRECOMPUTED_VELOCITY _BLENDMODE_ALPHA _DISABLE_SSR _DOUBLESIDED_ON
+    _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
+  m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 1
   m_CustomRenderQueue: 3000
   stringTagMap:
@@ -28,8 +28,12 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _FoamNormal:
+        m_Texture: {fileID: 2800000, guid: cf98c510542f6ea459cf1be46b46d4c9, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _FoamTexture:
-        m_Texture: {fileID: 2800000, guid: d5c8151d0e0bcf046887fc78cecd1b1b, type: 3}
+        m_Texture: {fileID: 2800000, guid: b3f65acccbf31ed458771f355601a725, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _HeightMap:
@@ -44,12 +48,17 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Texture0:
+        m_Texture: {fileID: 2800000, guid: 25fd4376f156aa843964ce73e403189a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _texcoord:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _AddPrecomputedVelocity: 1
+    - _Alpha: 1
     - _AlphaCutoff: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaDstBlend: 10
@@ -57,28 +66,53 @@ Material:
     - _BlendMode: 0
     - _CullMode: 0
     - _CullModeForward: 0
+    - _DiffusionProfile: 2.35074
+    - _DisplacementStrength: 3.84
     - _DoubleSidedEnable: 1
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 10
+    - _EdgePower: 0.1
     - _EnableFogOnTransparent: 1
     - _Float1: 1
-    - _Float2: 100
-    - _FoamDistance: 2.7
-    - _NormalStrength: 2
+    - _Float2: 1
+    - _Float3: 1
+    - _FoamAlpha: 1
+    - _FoamDistance: 0.89
+    - _FoamDistance1: 2.7
+    - _FoamNormalDistance: 12.85
+    - _FoamNormalStr: 0.5
+    - _FoamScale: 20
+    - _FoamTopStrength: 0.1
+    - _FoamtTopNoiseScale: 0.5
+    - _FresnelBias: 0.3
+    - _FresnelScale: 6.39
+    - _FresnelStrength: 72.81
+    - _Metallic: 1
+    - _NoiseMultiplier: 0
+    - _NoiseScale: 0.53
+    - _NormalContrast: 5.99
+    - _NormalDetailScale: 10
+    - _NormalFade: 1e-16
+    - _NormalStrength: 0.2
+    - _NormalStrength1: 0.82
     - _Offset: 0.5
-    - _ReceivesSSR: 1
+    - _ReceivesSSR: 0
     - _Refraction: 1
-    - _RefractionStrength: 10
+    - _RefractionIndex: 0.53
+    - _RefractionStrength: 0.15
     - _RenderQueueType: 5
     - _RequireSplitLighting: 0
     - _Scale: 2
-    - _Smoothness: 0.97
+    - _ScatterPower: 3
+    - _ScatterStrength: 0.69
+    - _ScatteringRefraction: 0.88
+    - _Smoothness: 0.859
     - _SrcBlend: 1
     - _StencilRef: 0
-    - _StencilRefDepth: 8
+    - _StencilRefDepth: 0
     - _StencilRefDistortionVec: 4
-    - _StencilRefGBuffer: 10
-    - _StencilRefMV: 40
+    - _StencilRefGBuffer: 2
+    - _StencilRefMV: 32
     - _StencilWriteMask: 6
     - _StencilWriteMaskDepth: 8
     - _StencilWriteMaskDistortionVec: 4
@@ -87,26 +121,40 @@ Material:
     - _SurfaceType: 1
     - _TessEdgeLength: 2
     - _TessMax: 1000
-    - _TessMaxDisp: 25
+    - _TessMaxDisp: 100
     - _TessMin: 1
     - _TessPhongStrength: 1
-    - _TessValue: 32
-    - _Tiling: 0.01
+    - _TessValue: 16
+    - _Thickness: 7.6
+    - _Tiling: 0.3
     - _Tilling: 10
+    - _TopFoamNoiseStrength: 1.05
+    - _TopFoamScale: 1.5
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
     - _TransparentSortPriority: 0
     - _TransparentZWrite: 1
     - _UseShadowThreshold: 0
-    - _WaterClarity: 16
+    - _WaterClarity: 100
     - _ZTestDepthEqualForOpaque: 4
     - _ZTestGBuffer: 4
     - _ZTestTransparent: 4
     - _ZWrite: 1
     - __dirty: 0
     m_Colors:
-    - _Albedo: {r: 0, g: 0.24528301, b: 0.1936445, a: 0.74509805}
+    - _Albedo: {r: 0, g: 0.4125754, b: 0.5283019, a: 1}
+    - _ChoppyStrength: {r: 1, g: 0, b: 0, a: 0}
+    - _Color1: {r: 0.12055002, g: 0.4056604, b: 0.36208394, a: 0}
+    - _ColorTop: {r: 0, g: 0.15319587, b: 0.21698111, a: 1}
+    - _DiffusionProfile_asset: {r: 1.9511188e-13, g: -4.5472757e+12, b: -5.1942704e-11, a: 2.936885e-27}
     - _DoubleSidedConstants: {r: 1, g: 1, b: 1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _Scale: {r: 1, g: 1, b: 0, a: 0}
+    - _FresnelColor: {r: 0.8773585, g: 0.6791239, b: 0.38487887, a: 0}
+    - _NoiseSpeed: {r: 0.5, g: 0.6, b: 0, a: 0}
+    - _RefractionColor: {r: 0, g: 0.6342391, b: 0.6792453, a: 0}
+    - _Scale: {r: 0.007, g: 0.007, b: 0, a: 0}
+    - _ScatterColor: {r: 0, g: 0.745283, b: 0.7378339, a: 0}
+    - _ScatterThicknessNormal: {r: -1, g: -1, b: -1, a: 0}
+    - _TopFoamNoiseSpeed: {r: 0.3, g: 0.1, b: 0, a: 0}
+    - _TopFoamSpeed: {r: 0.01, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []

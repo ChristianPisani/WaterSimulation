@@ -1,4 +1,5 @@
-﻿using Assets.ImageExtensions;
+﻿#if UNITY_EDITOR
+using Assets.ImageExtensions;
 using Assets.Scripts;
 using UnityEditor;
 using UnityEngine;
@@ -68,3 +69,4 @@ class TessendorfEditor : Editor {
         }
     }
 }
+#endif
